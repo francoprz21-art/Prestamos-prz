@@ -6,19 +6,23 @@
     <title>PRZ PRÉSTAMOS</title>
     <style>
         :root { --primary: #0a2e29; --secondary: #164a41; --accent: #4caf50; --text: #e0e0e0; --card-bg: #ffffff10; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--primary); color: var(--text); margin: 0; padding-bottom: 70px; }
-        .header { background: linear-gradient(to bottom, #10403a, var(--primary)); padding: 20px; text-align: center; border-radius: 0 0 20px 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--primary); color: var(--text); margin: 0; padding-bottom: 80px; }
+        .header { background: linear-gradient(to bottom, #10403a, var(--primary)); padding: 25px 20px; text-align: center; border-radius: 0 0 25px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .container { padding: 15px; }
-        .card-prestamo { background: var(--card-bg); border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #ffffff20; }
-        .cuota-item { background: white; color: #333; margin-bottom: 10px; border-radius: 10px; padding: 12px; display: flex; align-items: center; justify-content: space-between; }
-        .nro-cuota { background: #ddd; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px; font-weight: bold; }
-        .tab-menu { display: flex; background: var(--secondary); border-radius: 10px; margin-bottom: 15px; overflow: hidden; }
-        .tab { flex: 1; padding: 10px; text-align: center; font-size: 14px; cursor: pointer; }
+        .card-prestamo { background: var(--card-bg); border-radius: 15px; padding: 18px; margin-bottom: 12px; border: 1px solid #ffffff15; cursor: pointer; transition: 0.3s; }
+        .card-prestamo:active { transform: scale(0.98); background: #ffffff20; }
+        .cuota-item { background: white; color: #333; margin-bottom: 8px; border-radius: 12px; padding: 14px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .nro-cuota { background: #e8f5e9; color: #2e7d32; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 13px; margin-right: 12px; font-weight: bold; border: 1px solid #c8e6c9; }
+        .tab-menu { display: flex; background: var(--secondary); border-radius: 12px; margin-bottom: 20px; padding: 5px; }
+        .tab { flex: 1; padding: 10px; text-align: center; font-size: 14px; border-radius: 8px; cursor: pointer; }
         .tab.active { background: var(--accent); color: white; font-weight: bold; }
-        .btn-float { position: fixed; bottom: 85px; right: 20px; background: var(--accent); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: none; font-size: 30px; color: white; cursor: pointer; }
-        .nav-bottom { position: fixed; bottom: 0; width: 100%; background: #051a17; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #ffffff10; }
-        input, select { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: none; background: #ffffff20; color: white; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; padding: 20px; box-sizing: border-box; z-index: 100; }
+        .btn-float { position: fixed; bottom: 90px; right: 20px; background: var(--accent); width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 12px rgba(0,0,0,0.4); border: none; font-size: 28px; color: white; cursor: pointer; z-index: 10; }
+        .nav-bottom { position: fixed; bottom: 0; width: 100%; background: #051a17; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #ffffff10; z-index: 5; }
+        input { width: 100%; padding: 14px; margin-top: 10px; border-radius: 10px; border: 1px solid #ffffff30; background: #0d1117; color: white; box-sizing: border-box; font-size: 16px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; padding: 30px 20px; box-sizing: border-box; z-index: 100; overflow-y: auto; }
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+        .pago-parcial { color: #ffb74d; }
+        .pago-adelanto { color: #81c784; }
     </style>
 </head>
 <body>
@@ -26,50 +30,54 @@
 <div id="app">
     <div id="view-cartera">
         <div class="header">
-            <h2>PRZ PRÉSTAMOS</h2>
-            <p>Organiza tus cobros</p>
+            <h1 style="margin:0; font-size: 24px; letter-spacing: 1px;">PRZ PRÉSTAMOS</h1>
+            <p style="margin:5px 0 0; opacity: 0.7; font-size: 14px;">Gestión de Cobros Efectiva</p>
         </div>
-        <div class="container" id="lista-clientes"></div>
+        <div class="container">
+            <h3 style="color: var(--accent); margin-bottom: 15px;">Clientes Activos</h3>
+            <div id="lista-clientes"></div>
+        </div>
     </div>
 
     <div id="view-detalle" style="display:none;">
-        <div class="header">
-            <button onclick="changeView('view-cartera')" style="float:left; background:none; border:none; color:white;">←</button>
-            <h2 id="det-nombre">Nombre</h2>
-            <p id="det-total">Total: $0</p>
+        <div class="header" style="text-align: left; position: relative;">
+            <button onclick="changeView('view-cartera')" style="background:none; border:none; color:white; font-size: 24px; cursor:pointer;">←</button>
+            <h2 id="det-nombre" style="margin: 10px 0 5px;">Nombre</h2>
+            <p id="det-saldo" style="margin:0; color: var(--accent); font-weight: bold;"></p>
         </div>
         <div class="container">
             <div class="tab-menu">
                 <div class="tab active">Plan de pago</div>
-                <div class="tab">Historial</div>
+                <div class="tab" onclick="alert('Historial en desarrollo')">Historial</div>
             </div>
             <div id="lista-cuotas"></div>
         </div>
-        <button class="btn-float" onclick="abrirModalPago()">💵</button>
+        <button class="btn-float" onclick="abrirModal('modal-pago')">💵</button>
     </div>
 
     <div id="modal-nuevo" class="modal">
-        <h3>Crear Préstamo</h3>
-        <input type="text" id="n-cliente" placeholder="Nombre del cliente">
-        <input type="number" id="n-valor" placeholder="Valor del crédito">
+        <h2 style="color:var(--accent)">Nuevo Préstamo</h2>
+        <input type="text" id="n-cliente" placeholder="Nombre completo del cliente">
+        <input type="number" id="n-valor" placeholder="Monto a entregar ($)">
         <input type="number" id="n-cuotas" placeholder="Cantidad de cuotas">
-        <input type="number" id="n-interes" placeholder="Interés %">
-        <button class="btn-float" style="bottom:20px" onclick="guardarPrestamo()">✅</button>
-        <button onclick="cerrarModal('modal-nuevo')" style="background:none; border:none; color:gray; width:100%; margin-top:20px;">Cancelar</button>
+        <input type="number" id="n-interes" placeholder="Interés total (%)">
+        <button class="btn-float" style="bottom:30px; right:30px;" onclick="guardarPrestamo()">✅</button>
+        <button onclick="cerrarModal('modal-nuevo')" style="background:none; border:none; color:var(--text); width:100%; margin-top:30px; opacity: 0.5;">Cerrar sin guardar</button>
     </div>
 
     <div id="modal-pago" class="modal">
-        <h3>Registrar Abono</h3>
-        <p id="pago-info-cuota">Valor cuota: $0</p>
-        <input type="number" id="pago-monto" placeholder="Monto a cobrar">
-        <button class="btn-float" style="bottom:20px" onclick="procesarAbono()">💾</button>
-        <button onclick="cerrarModal('modal-pago')" style="background:none; border:none; color:gray; width:100%; margin-top:20px;">Cancelar</button>
+        <h2 style="color:var(--accent)">Registrar Cobro</h2>
+        <p id="pago-info-cuota" style="margin-bottom:20px;"></p>
+        <label style="font-size: 14px; opacity: 0.7;">Monto recibido:</label>
+        <input type="number" id="pago-monto" placeholder="Ej: 5000">
+        <button class="btn-float" style="bottom:30px; right:30px;" onclick="procesarAbono()">💾</button>
+        <button onclick="cerrarModal('modal-pago')" style="background:none; border:none; color:var(--text); width:100%; margin-top:30px; opacity: 0.5;">Cancelar</button>
     </div>
 
     <div class="nav-bottom">
-        <div onclick="changeView('view-cartera')">🏠</div>
-        <div onclick="abrirModalNuevo()">➕</div>
-        <div>⚙️</div>
+        <div onclick="changeView('view-cartera')" style="font-size: 20px;">👥</div>
+        <div onclick="abrirModal('modal-nuevo')" style="font-size: 24px; background: var(--accent); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -25px; border: 4px solid var(--primary);">＋</div>
+        <div onclick="alert('Configuración')" style="font-size: 20px;">⚙️</div>
     </div>
 </div>
 
@@ -84,8 +92,7 @@
         if(id === 'view-cartera') renderCartera();
     }
 
-    function abrirModalNuevo() { document.getElementById('modal-nuevo').style.display = 'block'; }
-    function abrirModalPago() { document.getElementById('modal-pago').style.display = 'block'; }
+    function abrirModal(id) { document.getElementById(id).style.display = 'block'; }
     function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
 
     function guardarPrestamo() {
@@ -94,15 +101,14 @@
         const nCuotas = parseInt(document.getElementById('n-cuotas').value);
         const int = parseFloat(document.getElementById('n-interes').value);
 
-        if(!nombre || !valor) return;
+        if(!nombre || isNaN(valor) || isNaN(nCuotas)) return alert("Completar datos mínimos");
 
         const total = valor + (valor * (int/100));
-        const cuotaVal = total / nCuotas;
-
         db.push({
-            nombre, valor, nCuotas, total, cuotaVal,
-            saldo: total,
-            pagado: 0
+            nombre: nombre.toUpperCase(),
+            valor, nCuotas, total,
+            cuotaVal: total / nCuotas,
+            saldo: total
         });
 
         localStorage.setItem('prz_db', JSON.stringify(db));
@@ -112,15 +118,17 @@
 
     function renderCartera() {
         const cont = document.getElementById('lista-clientes');
-        cont.innerHTML = '';
+        cont.innerHTML = db.length ? '' : '<p style="text-align:center; opacity:0.5; margin-top:50px;">No hay clientes registrados.<br>Toca el botón (+) para empezar.</p>';
         db.forEach((p, i) => {
             cont.innerHTML += `
                 <div class="card-prestamo" onclick="verDetalle(${i})">
-                    <div style="display:flex; justify-content:space-between">
-                        <strong>${p.nombre.toUpperCase()}</strong>
-                        <span style="color:var(--accent)">$${p.saldo.toLocaleString()}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong>${p.nombre}</strong>
+                        <span style="color:var(--accent); font-weight:bold;">$${Math.round(p.saldo).toLocaleString()}</span>
                     </div>
-                    <small style="color:var(--gray)">${p.nCuotas} cuotas de $${p.cuotaVal.toLocaleString()}</small>
+                    <div style="margin-top:8px; font-size:12px; opacity:0.7;">
+                        Original: $${Math.round(p.total).toLocaleString()} | ${p.nCuotas} cuotas
+                    </div>
                 </div>`;
         });
     }
@@ -129,8 +137,8 @@
         curIdx = i;
         const p = db[i];
         document.getElementById('det-nombre').innerText = p.nombre;
-        document.getElementById('det-total').innerText = `Saldo: $${p.saldo.toLocaleString()} / Total: $${p.total.toLocaleString()}`;
-        document.getElementById('pago-info-cuota').innerText = `Monto cuota: $${p.cuotaVal.toLocaleString()}`;
+        document.getElementById('det-saldo').innerText = `SALDO PENDIENTE: $${p.saldo.toLocaleString()}`;
+        document.getElementById('pago-info-cuota').innerText = `Valor de la cuota: $${p.cuotaVal.toLocaleString()}`;
         
         const listC = document.getElementById('lista-cuotas');
         listC.innerHTML = '';
@@ -140,24 +148,32 @@
                     <div style="display:flex; align-items:center;">
                         <div class="nro-cuota">${n}</div>
                         <div>
-                            <div style="font-size:14px">Saldo cuota</div>
-                            <div style="font-size:12px; color:gray">Vence próximamente</div>
+                            <div style="font-size:14px; font-weight:bold;">Cuota de capital</div>
+                            <div style="font-size:11px; color:#666;">Estado: Pendiente</div>
                         </div>
                     </div>
-                    <strong>$${p.cuotaVal.toLocaleString()}</strong>
+                    <strong style="color:#2e7d32;">$${p.cuotaVal.toLocaleString()}</strong>
                 </div>`;
         }
-        changeView('view-detalle');
+        changeView('view-detail');
     }
 
     function procesarAbono() {
         const monto = parseFloat(document.getElementById('pago-monto').value);
-        if(!monto) return;
+        if(!monto || isNaN(monto)) return alert("Ingresa un monto válido");
         
-        db[curIdx].saldo -= monto;
-        db[curIdx].pagado += monto;
+        const p = db[curIdx];
+        const dif = monto - p.cuotaVal;
+        p.saldo -= monto;
         
+        let feedback = "";
+        if (dif === 0) feedback = "Pago exacto registrado.";
+        else if (dif < 0) feedback = "Pago parcial. Restan $" + Math.abs(dif).toFixed(2) + " de esta cuota.";
+        else feedback = "¡Adelanto registrado! Se descontaron $" + dif.toFixed(2) + " de la deuda total.";
+
         localStorage.setItem('prz_db', JSON.stringify(db));
+        alert(feedback);
+        document.getElementById('pago-monto').value = "";
         cerrarModal('modal-pago');
         verDetalle(curIdx);
     }
