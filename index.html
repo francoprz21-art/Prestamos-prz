@@ -3,91 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRZ PRÉSTAMOS - Cobros</title>
+    <title>PRZ PRÉSTAMOS - Gestión</title>
     <style>
-        body { font-family: sans-serif; background-color: #0d1117; color: #c9d1d9; padding: 20px; }
-        .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; max-width: 400px; margin: auto; }
-        h2 { color: #58a6ff; text-align: center; }
-        label { display: block; margin-top: 10px; font-size: 14px; }
-        input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; margin-top: 20px; background-color: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #2ea043; }
-        #comprobante { margin-top: 20px; padding: 15px; border: 1px dashed #8b949e; background-color: #0d1117; display: none; }
-        .info-msg { margin-top: 10px; padding: 10px; border-radius: 6px; font-size: 13px; }
-        .pendiente { background: #bb800926; color: #d29922; border: 1px solid #bb800966; }
-        .excedente { background: #23863626; color: #3fb950; border: 1px solid #23863666; }
+        :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --blue: #58a6ff; --green: #238636; --gray: #8b949e; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background-color: var(--bg); color: #c9d1d9; margin: 0; padding: 15px; }
+        .container { max-width: 500px; margin: auto; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 15px; }
+        h2 { color: var(--blue); text-align: center; margin-top: 0; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .btn-main { background: var(--green); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--blue); color: var(--blue); }
+        .client-item { padding: 15px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; }
+        .client-item:hover { background: #1f242c; }
+        label { display: block; margin-top: 10px; font-size: 13px; color: var(--gray); }
+        input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: white; box-sizing: border-box; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        .badge-red { background: #da363326; color: #f85149; }
+        .badge-green { background: #23863626; color: #3fb950; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>PRZ PRÉSTAMOS</h2>
-    <label>Cliente</label>
-    <input type="text" id="cliente" placeholder="Nombre completo">
-    
-    <label>Número de Cuota</label>
-    <input type="number" id="cuota" placeholder="Ej: 1">
-    
-    <label>Valor de Cuota ($)</label>
-    <input type="number" id="valorCuota" placeholder="5000">
-    
-    <label>Monto que Abona ($)</label>
-    <input type="number" id="montoAbonado" placeholder="0.00">
+<div class="container">
+    <div id="view-list">
+        <h2>PRZ PRÉSTAMOS</h2>
+        <button class="btn btn-main" onclick="showView('view-form')">+ Agregar Nuevo Cliente</button>
+        <div class="card" style="margin-top:20px; padding:0;">
+            <div id="lista-clientes"></div>
+        </div>
+    </div>
 
-    <button onclick="procesarPago()">GENERAR COBRO</button>
+    <div id="view-form" style="display:none;">
+        <button class="btn-outline btn" onclick="showView('view-list')">← Volver</button>
+        <div class="card">
+            <h2>Nuevo Préstamo</h2>
+            <label>Nombre del Cliente</label>
+            <input type="text" id="f-nombre">
+            <label>Monto a Entregar ($)</label>
+            <input type="number" id="f-capital">
+            <label>Interés Total (%)</label>
+            <input type="number" id="f-interes">
+            <label>Cantidad de Cuotas</label>
+            <input type="number" id="f-cuotas">
+            <button class="btn btn-main" onclick="guardarCliente()">Crear Préstamo</button>
+        </div>
+    </div>
 
-    <div id="resultadoMsg" class="info-msg" style="display:none;"></div>
-
-    <div id="comprobante">
-        <center><strong>PRZ PRESTAMOS</strong></center><br>
-        Cliente: <span id="resCliente"></span><br>
-        Cuota N°: <span id="resCuota"></span><br>
-        Monto Abonado: $<span id="resMonto"></span><br>
-        <hr>
-        <small><span id="resEstado"></span></small>
+    <div id="view-detail" style="display:none;">
+        <button class="btn-outline btn" onclick="showView('view-list')">← Volver</button>
+        <div id="detalle-contenido"></div>
     </div>
 </div>
 
 <script>
-    function procesarPago() {
-        const cliente = document.getElementById('cliente').value;
-        const cuota = document.getElementById('cuota').value;
-        const valor = parseFloat(document.getElementById('valorCuota').value);
-        const abona = parseFloat(document.getElementById('montoAbonado').value);
-        
-        if(!cliente || !valor || isNaN(abona)) {
-            alert("Por favor completá los datos");
-            return;
-        }
+    let clientes = JSON.parse(localStorage.getItem('prz_data')) || [];
+    let seleccionadoIdx = null;
 
-        const dif = abona - valor;
-        const msgDiv = document.getElementById('resultadoMsg');
-        const comp = document.getElementById('comprobante');
-        let estado = "";
-
-        msgDiv.style.display = "block";
-        comp.style.display = "block";
-
-        if (dif === 0) {
-            msgDiv.className = "info-msg excedente";
-            msgDiv.innerText = "Cuota cancelada.";
-            estado = "PAGO TOTAL";
-        } else if (dif < 0) {
-            msgDiv.className = "info-msg pendiente";
-            msgDiv.innerText = "Saldo pendiente: $" + Math.abs(dif).toFixed(2);
-            estado = "PAGO PARCIAL - Restan: $" + Math.abs(dif).toFixed(2);
-        } else {
-            msgDiv.className = "info-msg excedente";
-            msgDiv.innerText = "Excedente a favor: $" + dif.toFixed(2);
-            estado = "PAGO CON EXCEDENTE - A cuenta: $" + dif.toFixed(2);
-        }
-
-        document.getElementById('resCliente').innerText = cliente;
-        document.getElementById('resCuota').innerText = cuota;
-        document.getElementById('resMonto').innerText = abona.toFixed(2);
-        document.getElementById('resEstado').innerText = estado;
+    function showView(id) {
+        document.getElementById('view-list').style.display = 'none';
+        document.getElementById('view-form').style.display = 'none';
+        document.getElementById('view-detail').style.display = 'none';
+        document.getElementById(id).style.display = 'block';
+        if(id === 'view-list') renderLista();
     }
-</script>
 
+    function guardarCliente() {
+        const nombre = document.getElementById('f-nombre').value;
+        const capital = parseFloat(document.getElementById('f-capital').value);
+        const interes = parseFloat(document.getElementById('f-interes').value);
+        const cuotas = parseInt(document.getElementById('f-cuotas').value);
+
+        if(!nombre || !capital || !cuotas) return alert("Completa los datos");
+
+        const total = capital + (capital * (interes/100));
+        const valorCuota = total / cuotas;
+
+        const nuevo = {
+            nombre: nombre.toUpperCase(),
+            capital, interes, cuotas, 
+            totalOriginal: total,
+            valorCuota: valorCuota,
+            saldoPendiente: total,
+            pagos: []
+        };
+
+        clientes.push(nuevo);
+        localStorage.setItem('prz_data', JSON.stringify(clientes));
+        showView('view-list');
+    }
+
+    function renderLista() {
+        const lista = document.getElementById('lista-clientes');
+        lista.innerHTML = clientes.length ? '' : '<p style="padding:20px; text-align:center;">No hay clientes registrados</p>';
+        clientes.forEach((c, idx) => {
+            lista.innerHTML += `
+                <div class="client-item" onclick="verDetalle(${idx})">
+                    <span>${c.nombre}</span>
+                    <span class="badge ${c.saldoPendiente > 0 ? 'badge-red' : 'badge-green'}">
+                        $${c.saldoPendiente.toLocaleString()}
+                    </span>
+                </div>`;
+        });
+    }
+
+    function verDetalle(idx) {
+        seleccionadoIdx = idx;
+        const c = clientes[idx];
+        const cont = document.getElementById('detalle-contenido');
+        cont.innerHTML = `
+            <div class="card">
+                <h2>${c.nombre}</h2>
+                <div class="info-row"><span>Préstamo:</span> <span>$${c.capital}</span></div>
+                <div class="info-row"><span>Interés:</span> <span>${c.interes}%</span></div>
+                <div class="info-row"><span>Total a Devolver:</span> <span>$${c.totalOriginal.toFixed(2)}</span></div>
+                <div class="info-row"><span>Valor Cuota:</span> <strong>$${c.valorCuota.toFixed(2)}</strong></div>
+                <hr style="border:0; border-top:1px solid var(--border); margin:15px 0;">
+                <div class="info-row"><span>SALDO ACTUAL:</span> <strong style="color:var(--blue)">$${c.saldoPendiente.toFixed(2)}</strong></div>
+                
+                <label>Monto a Cobrar ($)</label>
+                <input type="number" id="monto-cobro" placeholder="0.00">
+                <button class="btn btn-main" onclick="registrarPago()">Registrar Pago</button>
+            </div>
+        `;
+        showView('view-detail');
+    }
+
+    function registrarPago() {
+        const monto = parseFloat(document.getElementById('monto-cobro').value);
+        if(!monto || monto <= 0) return alert("Ingresa un monto válido");
+
+        const c = clientes[seleccionadoIdx];
+        c.saldoPendiente -= monto;
+
+        // Lógica de visualización de resultado
+        let msg = "";
+        if (monto < c.valorCuota) {
+            msg = `Pago parcial recibido. Saldo restante: $${c.saldoPendiente.toFixed(2)}`;
+        } else if (monto > c.valorCuota) {
+            msg = `Pago con adelanto registrado. Saldo restante: $${c.saldoPendiente.toFixed(2)}`;
+        } else {
+            msg = "Cuota abonada exactamente.";
+        }
+
+        localStorage.setItem('prz_data', JSON.stringify(clientes));
+        alert(msg);
+        verDetalle(seleccionadoIdx);
+    }
+
+    renderLista();
+</script>
 </body>
 </html>
