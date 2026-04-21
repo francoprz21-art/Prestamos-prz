@@ -3,38 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Préstamos</title>
+    <title>Prestamos PRZ - Gestión</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #f0f2f5; font-family: sans-serif; }
-        .card { background: white; padding: 18px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .btn-pagar { background-color: #10b981; color: white; transition: 0.3s; }
-        .btn-pagar:active { transform: scale(0.95); }
+        .card-shadow { box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .progress-bar { transition: width 0.5s ease-in-out; }
     </style>
 </head>
-<body class="p-4">
+<body class="bg-gray-100 min-h-screen p-4">
 
     <div class="max-w-md mx-auto space-y-6">
-        <h1 class="text-3xl font-extrabold text-center text-blue-700">💰 CobrosApp</h1>
+        <h1 class="text-3xl font-bold text-center text-blue-700">💰 CobrosApp</h1>
 
-        <div class="card">
-            <h2 class="text-lg font-bold mb-3 text-gray-700">Registrar Nuevo Préstamo</h2>
-            <div class="grid grid-cols-1 gap-3">
-                <input id="cliente" type="text" placeholder="Nombre del cliente" class="p-3 border rounded-xl w-full">
+        <div class="bg-white p-6 rounded-2xl card-shadow">
+            <h2 class="text-lg font-semibold mb-4 text-gray-700">Registrar Nuevo Préstamo</h2>
+            <div class="space-y-3">
+                <input id="cliente" type="text" placeholder="Nombre del cliente" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                <input id="monto" type="number" placeholder="Monto total ($)" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                 <div class="flex gap-2">
-                    <input id="monto" type="number" placeholder="Capital $" class="p-3 border rounded-xl w-1/2">
-                    <input id="interes" type="number" placeholder="Interés %" class="p-3 border rounded-xl w-1/2">
-                </div>
-                <div class="flex gap-2">
-                    <select id="frecuencia" class="p-3 border rounded-xl w-1/2 bg-white">
-                        <option value="Diaria">Diaria</option>
+                    <select id="frecuencia" class="p-3 border rounded-xl bg-white w-1/2">
+                        <option value="Diario">Diario</option>
                         <option value="Semanal">Semanal</option>
                         <option value="Quincenal">Quincenal</option>
                         <option value="Mensual">Mensual</option>
                     </select>
-                    <input id="cuotas" type="number" placeholder="Cant. Cuotas" class="p-3 border rounded-xl w-1/2">
+                    <input id="cuotasTotal" type="number" placeholder="Cant. Cuotas" class="w-1/2 p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-                <button onclick="guardarPrestamo()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg mt-2 shadow-lg">
+                <button onclick="guardarPrestamo()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition">
                     + Crear Préstamo
                 </button>
             </div>
@@ -45,14 +40,16 @@
     </div>
 
     <script>
+        // Cargar datos al iniciar
+        let prestamos = JSON.parse(localStorage.getItem('datos_prestamos')) || [];
+
         function guardarPrestamo() {
             const cliente = document.getElementById('cliente').value;
             const monto = parseFloat(document.getElementById('monto').value);
-            const interes = parseFloat(document.getElementById('interes').value);
-            const cuotasTotal = parseInt(document.getElementById('cuotas').value);
+            const cuotasTotal = parseInt(document.getElementById('cuotasTotal').value);
             const frecuencia = document.getElementById('frecuencia').value;
 
-            if(!cliente || isNaN(monto) || isNaN(cuotasTotal)) {
+            if (!cliente || isNaN(monto) || isNaN(cuotasTotal)) {
                 return alert("Por favor, completa los datos básicos.");
             }
 
@@ -60,96 +57,87 @@
                 id: Date.now(),
                 cliente,
                 monto,
-                interes,
                 frecuencia,
                 cuotasTotal,
-                cuotasPagadas: 0,
-                fechaInicio: new Date().toLocaleDateString()
+                cuotasPagas: 0
             };
 
-            let prestamos = JSON.parse(localStorage.getItem('prestamos_data') || '[]');
             prestamos.push(nuevoPrestamo);
-            localStorage.setItem('prestamos_data', JSON.stringify(prestamos));
+            localStorage.setItem('datos_prestamos', JSON.stringify(prestamos));
             
             // Limpiar campos
-            document.getElementById('cliente').value = "";
-            document.getElementById('monto').value = "";
-            render();
-        }
-
-        function registrarPago(id) {
-            let prestamos = JSON.parse(localStorage.getItem('prestamos_data'));
-            const index = prestamos.findIndex(p => p.id === id);
+            document.getElementById('cliente').value = '';
+            document.getElementById('monto').value = '';
+            document.getElementById('cuotasTotal').value = '';
             
-            if(prestamos[index].cuotasPagadas < prestamos[index].cuotasTotal) {
-                prestamos[index].cuotasPagadas += 1;
-                localStorage.setItem('prestamos_data', JSON.stringify(prestamos));
-                
-                // Enviar comprobante automático
-                const p = prestamos[index];
-                const total = p.monto + (p.monto * (p.interes / 100));
-                const valorCuota = (total / p.cuotasTotal).toFixed(2);
-                
-                const mensaje = `*COMPROBANTE DE PAGO*%0A--------------------------%0A*Cliente:* ${p.cliente}%0A*Cuota:* ${p.cuotasPagadas} de ${p.cuotasTotal}%0A*Monto:* $${valorCuota}%0A*Faltan:* ${p.cuotasTotal - p.cuotasPagadas} cuotas.%0A--------------------------%0A_¡Muchas gracias!_`;
-                window.open(`https://wa.me/?text=${mensaje}`, '_blank');
-                
-                render();
-            } else {
-                alert("Este préstamo ya está totalmente pagado.");
+            renderizarPrestamos();
+        }
+
+        function cobrarCuota(id) {
+            const p = prestamos.find(x => x.id === id);
+            if (p.cuotasPagas < p.cuotasTotal) {
+                p.cuotasPagas++;
+                localStorage.setItem('datos_prestamos', JSON.stringify(prestamos));
+                renderizarPrestamos();
             }
         }
 
-        function eliminar(id) {
-            if(confirm("¿Eliminar este registro definitivamente?")) {
-                let prestamos = JSON.parse(localStorage.getItem('prestamos_data'));
+        function enviarWhatsApp(id) {
+            const p = prestamos.find(x => x.id === id);
+            const mensaje = `*CobrosApp - Comprobante*\n\nHola ${p.cliente}, se registró tu pago.\nEstado: ${p.cuotasPagas}/${p.cuotasTotal} cuotas.\nFrecuencia: ${p.frecuencia}.`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`);
+        }
+
+        function eliminarPrestamo(id) {
+            if(confirm("¿Seguro que querés borrar este préstamo?")) {
                 prestamos = prestamos.filter(p => p.id !== id);
-                localStorage.setItem('prestamos_data', JSON.stringify(prestamos));
-                render();
+                localStorage.setItem('datos_prestamos', JSON.stringify(prestamos));
+                renderizarPrestamos();
             }
         }
 
-        function render() {
+        function renderizarPrestamos() {
             const contenedor = document.getElementById('listaPrestamos');
-            const prestamos = JSON.parse(localStorage.getItem('prestamos_data') || '[]');
-            contenedor.innerHTML = "";
+            contenedor.innerHTML = '';
 
-            prestamos.reverse().forEach(p => {
-                const total = p.monto + (p.monto * (p.interes / 100));
-                const cuota = total / p.cuotasTotal;
-                const porcentaje = (p.cuotasPagadas / p.cuotasTotal) * 100;
-
+            prestamos.forEach(p => {
+                const porcentaje = (p.cuotasPagas / p.cuotasTotal) * 100;
+                
                 contenedor.innerHTML += `
-                    <div class="card border-l-8 ${p.cuotasPagadas === p.cuotasTotal ? 'border-green-500' : 'border-blue-500'}">
+                    <div class="bg-white p-5 rounded-2xl card-shadow border-l-8 border-blue-500">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-xl font-bold text-gray-800">${p.cliente}</p>
-                                <p class="text-xs text-gray-400 mb-2">Iniciado: ${p.fechaInicio}</p>
+                                <h3 class="font-bold text-xl">${p.cliente}</h3>
+                                <p class="text-gray-500 text-sm">$${p.monto} - ${p.frecuencia}</p>
                             </div>
-                            <button onclick="eliminar(${p.id})" class="text-gray-300 hover:text-red-500">✕</button>
-                        </div>
-                        
-                        <div class="flex justify-between text-sm mb-1">
-                            <span>Progreso: <b>${p.cuotasPagadas} / ${p.cuotasTotal}</b></span>
-                            <span>${porcentaje.toFixed(0)}%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
-                            <div class="bg-blue-600 h-2 rounded-full" style="width: ${porcentaje}%"></div>
+                            <button onclick="eliminarPrestamo(${p.id})" class="text-red-400 text-xs">Eliminar</button>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-2 text-sm bg-gray-50 p-2 rounded-lg mb-3">
-                            <p>Cuota: <b>$${cuota.toLocaleString()}</b></p>
-                            <p>Total: <b>$${total.toLocaleString()}</b></p>
+                        <div class="mt-4">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Progreso: ${p.cuotasPagas}/${p.cuotasTotal} cuotas</span>
+                                <span>${Math.round(porcentaje)}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-green-500 h-3 rounded-full progress-bar" style="width: ${porcentaje}%"></div>
+                            </div>
                         </div>
 
-                        <button onclick="registrarPago(${p.id})" class="w-full btn-pagar py-2 rounded-lg font-bold flex justify-center items-center gap-2">
-                            ✅ Marcar Pago y WhatsApp
-                        </button>
+                        <div class="grid grid-cols-2 gap-2 mt-4">
+                            <button onclick="cobrarCuota(${p.id})" class="bg-blue-100 text-blue-700 py-2 rounded-lg font-semibold hover:bg-blue-200">
+                                💳 Cobrar
+                            </button>
+                            <button onclick="enviarWhatsApp(${p.id})" class="bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600">
+                                📱 WhatsApp
+                            </button>
+                        </div>
                     </div>
                 `;
             });
         }
 
-        render();
+        // Mostrar lo que ya existe
+        renderizarPrestamos();
     </script>
 </body>
 </html>
