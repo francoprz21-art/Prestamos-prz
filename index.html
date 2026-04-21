@@ -5,85 +5,96 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRZ PRÉSTAMOS</title>
     <style>
-        :root { --primary: #0a2e29; --secondary: #164a41; --accent: #4caf50; --text: #e0e0e0; --card-bg: #ffffff10; }
+        :root { --primary: #0a2e29; --secondary: #164a41; --accent: #4caf50; --text: #e0e0e0; --card-bg: #ffffff10; --danger: #e53935; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--primary); color: var(--text); margin: 0; padding-bottom: 80px; }
         .header { background: linear-gradient(to bottom, #10403a, var(--primary)); padding: 25px 20px; text-align: center; border-radius: 0 0 25px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .container { padding: 15px; }
-        .card-prestamo { background: var(--card-bg); border-radius: 15px; padding: 18px; margin-bottom: 12px; border: 1px solid #ffffff15; cursor: pointer; transition: 0.3s; }
-        .card-prestamo:active { transform: scale(0.98); background: #ffffff20; }
-        .cuota-item { background: white; color: #333; margin-bottom: 8px; border-radius: 12px; padding: 14px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .nro-cuota { background: #e8f5e9; color: #2e7d32; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 13px; margin-right: 12px; font-weight: bold; border: 1px solid #c8e6c9; }
-        .tab-menu { display: flex; background: var(--secondary); border-radius: 12px; margin-bottom: 20px; padding: 5px; }
-        .tab { flex: 1; padding: 10px; text-align: center; font-size: 14px; border-radius: 8px; cursor: pointer; }
-        .tab.active { background: var(--accent); color: white; font-weight: bold; }
+        .card-prestamo { background: var(--card-bg); border-radius: 15px; padding: 18px; margin-bottom: 12px; border: 1px solid #ffffff15; cursor: pointer; }
+        .cuota-item { background: white; color: #333; margin-bottom: 8px; border-radius: 12px; padding: 14px; display: flex; align-items: center; justify-content: space-between; border-left: 6px solid #ccc; }
+        .cuota-pagada { border-left-color: var(--accent); background: #e8f5e9; }
+        .cuota-parcial { border-left-color: #ff9800; background: #fff3e0; }
+        .nro-cuota { background: #eee; color: #333; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 12px; font-weight: bold; }
         .btn-float { position: fixed; bottom: 90px; right: 20px; background: var(--accent); width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 12px rgba(0,0,0,0.4); border: none; font-size: 28px; color: white; cursor: pointer; z-index: 10; }
-        .nav-bottom { position: fixed; bottom: 0; width: 100%; background: #051a17; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #ffffff10; z-index: 5; }
-        input { width: 100%; padding: 14px; margin-top: 10px; border-radius: 10px; border: 1px solid #ffffff30; background: #0d1117; color: white; box-sizing: border-box; font-size: 16px; }
+        .btn-wsp { background: #25d366; color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; }
+        .btn-danger { background: var(--danger); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        .nav-bottom { position: fixed; bottom: 0; width: 100%; background: #051a17; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #ffffff10; }
+        input, select { width: 100%; padding: 14px; margin-top: 10px; border-radius: 10px; border: 1px solid #ffffff30; background: #0d1117; color: white; box-sizing: border-box; font-size: 16px; }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; padding: 30px 20px; box-sizing: border-box; z-index: 100; overflow-y: auto; }
-        .badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
-        .pago-parcial { color: #ffb74d; }
-        .pago-adelanto { color: #81c784; }
+        .status-text { font-size: 11px; font-weight: bold; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <div id="view-cartera">
-        <div class="header">
-            <h1 style="margin:0; font-size: 24px; letter-spacing: 1px;">PRZ PRÉSTAMOS</h1>
-            <p style="margin:5px 0 0; opacity: 0.7; font-size: 14px;">Gestión de Cobros Efectiva</p>
-        </div>
-        <div class="container">
-            <h3 style="color: var(--accent); margin-bottom: 15px;">Clientes Activos</h3>
-            <div id="lista-clientes"></div>
-        </div>
+        <div class="header"><h1>PRZ PRÉSTAMOS</h1><p>Gestión de Cobros</p></div>
+        <div class="container" id="lista-clientes"></div>
     </div>
 
     <div id="view-detalle" style="display:none;">
         <div class="header" style="text-align: left; position: relative;">
-            <button onclick="changeView('view-cartera')" style="background:none; border:none; color:white; font-size: 24px; cursor:pointer;">←</button>
-            <h2 id="det-nombre" style="margin: 10px 0 5px;">Nombre</h2>
+            <button onclick="changeView('view-cartera')" style="background:none; border:none; color:white; font-size: 24px;">←</button>
+            <button onclick="abrirEdicion()" style="position:absolute; right:20px; top:25px; background:none; border:none; color:white; font-size: 22px;">✏️</button>
+            <h2 id="det-nombre" style="margin: 10px 0 5px;"></h2>
             <p id="det-saldo" style="margin:0; color: var(--accent); font-weight: bold;"></p>
         </div>
-        <div class="container">
-            <div class="tab-menu">
-                <div class="tab active">Plan de pago</div>
-                <div class="tab" onclick="alert('Historial en desarrollo')">Historial</div>
-            </div>
-            <div id="lista-cuotas"></div>
-        </div>
+        <div class="container" id="lista-cuotas"></div>
         <button class="btn-float" onclick="abrirModal('modal-pago')">💵</button>
     </div>
 
-    <div id="modal-nuevo" class="modal">
-        <h2 style="color:var(--accent)">Nuevo Préstamo</h2>
-        <input type="text" id="n-cliente" placeholder="Nombre completo del cliente">
-        <input type="number" id="n-valor" placeholder="Monto a entregar ($)">
-        <input type="number" id="n-cuotas" placeholder="Cantidad de cuotas">
-        <input type="number" id="n-interes" placeholder="Interés total (%)">
-        <button class="btn-float" style="bottom:30px; right:30px;" onclick="guardarPrestamo()">✅</button>
-        <button onclick="cerrarModal('modal-nuevo')" style="background:none; border:none; color:var(--text); width:100%; margin-top:30px; opacity: 0.5;">Cerrar sin guardar</button>
+    <div id="modal-form" class="modal">
+        <h2 id="modal-titulo" style="color:var(--accent)">Nuevo Préstamo</h2>
+        <input type="text" id="f-nombre" placeholder="Nombre completo">
+        <input type="text" id="f-valor" placeholder="Monto ($)" oninput="formatInput(this)">
+        <input type="number" id="f-interes" placeholder="Interés %">
+        <input type="number" id="f-cuotas" placeholder="Cantidad de cuotas">
+        <select id="f-frecuencia">
+            <option value="1">Diario</option><option value="7">Semanal</option>
+            <option value="15">Quincenal</option><option value="30">Mensual</option>
+        </select>
+        <button class="btn-float" style="bottom:30px;" onclick="guardarPrestamo()">✅</button>
+        <div id="cont-eliminar" style="display:none; margin-top:20px;">
+            <button class="btn-danger" onclick="eliminarCliente()">🗑️ Eliminar Cliente</button>
+        </div>
+        <button onclick="cerrarModal('modal-form')" style="background:none; border:none; color:white; width:100%; margin-top:30px; opacity:0.6;">Cerrar</button>
     </div>
 
     <div id="modal-pago" class="modal">
         <h2 style="color:var(--accent)">Registrar Cobro</h2>
-        <p id="pago-info-cuota" style="margin-bottom:20px;"></p>
-        <label style="font-size: 14px; opacity: 0.7;">Monto recibido:</label>
-        <input type="number" id="pago-monto" placeholder="Ej: 5000">
-        <button class="btn-float" style="bottom:30px; right:30px;" onclick="procesarAbono()">💾</button>
-        <button onclick="cerrarModal('modal-pago')" style="background:none; border:none; color:var(--text); width:100%; margin-top:30px; opacity: 0.5;">Cancelar</button>
+        <input type="text" id="pago-monto" placeholder="Monto recibido" oninput="formatInput(this)">
+        <div id="confirmacion-pago" style="display:none;">
+            <div style="background: #ffffff10; padding: 15px; border-radius: 10px; text-align: center; margin-top: 15px;">
+                <button id="btn-whatsapp" class="btn-wsp">📱 Enviar Comprobante</button>
+            </div>
+        </div>
+        <button class="btn-float" id="btn-save-pago" onclick="registrarPago()">💾</button>
+        <button onclick="cerrarModal('modal-pago')" style="background:none; border:none; color:white; width:100%; margin-top:30px;">Cancelar</button>
+    </div>
+
+    <div id="modal-config" class="modal">
+        <h2 style="color:var(--accent)">Configuración</h2>
+        <p>Asegurá tu información descargando una copia.</p>
+        <button class="btn-wsp" style="background:#0277bd" onclick="exportarDatos()">📥 Descargar Respaldo</button>
+        <button onclick="cerrarModal('modal-config')" style="background:none; border:none; color:white; width:100%; margin-top:30px;">Volver</button>
     </div>
 
     <div class="nav-bottom">
-        <div onclick="changeView('view-cartera')" style="font-size: 20px;">👥</div>
-        <div onclick="abrirModal('modal-nuevo')" style="font-size: 24px; background: var(--accent); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -25px; border: 4px solid var(--primary);">＋</div>
-        <div onclick="alert('Configuración')" style="font-size: 20px;">⚙️</div>
+        <div onclick="changeView('view-cartera')">👥</div>
+        <div onclick="abrirNuevo()" style="background: var(--accent); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -20px;">＋</div>
+        <div onclick="abrirModal('modal-config')">⚙️</div>
     </div>
 </div>
 
 <script>
     let db = JSON.parse(localStorage.getItem('prz_db')) || [];
     let curIdx = null;
+    let editMode = false;
+
+    function formatInput(i) {
+        let v = i.value.replace(/\D/g, "");
+        i.value = v ? new Intl.NumberFormat('es-AR').format(v) : "";
+    }
+    function clean(v) { return parseFloat(v.toString().replace(/\./g, "")) || 0; }
 
     function changeView(id) {
         document.getElementById('view-cartera').style.display = 'none';
@@ -95,87 +106,127 @@
     function abrirModal(id) { document.getElementById(id).style.display = 'block'; }
     function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
 
+    function abrirNuevo() {
+        editMode = false;
+        document.getElementById('modal-titulo').innerText = "Nuevo Préstamo";
+        document.getElementById('cont-eliminar').style.display = 'none';
+        document.getElementById('f-nombre').value = "";
+        document.getElementById('f-valor').value = "";
+        abrirModal('modal-form');
+    }
+
+    function abrirEdicion() {
+        editMode = true;
+        const p = db[curIdx];
+        document.getElementById('modal-titulo').innerText = "Editar Préstamo";
+        document.getElementById('f-nombre').value = p.nombre;
+        document.getElementById('f-valor').value = p.total.toLocaleString('es-AR');
+        document.getElementById('cont-eliminar').style.display = 'block';
+        abrirModal('modal-form');
+    }
+
     function guardarPrestamo() {
-        const nombre = document.getElementById('n-cliente').value;
-        const valor = parseFloat(document.getElementById('n-valor').value);
-        const nCuotas = parseInt(document.getElementById('n-cuotas').value);
-        const int = parseFloat(document.getElementById('n-interes').value);
+        const nombre = document.getElementById('f-nombre').value.toUpperCase();
+        const valor = clean(document.getElementById('f-valor').value);
+        const cuotas = parseInt(document.getElementById('f-cuotas').value);
+        const int = parseFloat(document.getElementById('f-interes').value) || 0;
+        const freq = parseInt(document.getElementById('f-frecuencia').value);
 
-        if(!nombre || isNaN(valor) || isNaN(nCuotas)) return alert("Completar datos mínimos");
+        if(!nombre || !valor) return;
 
-        const total = valor + (valor * (int/100));
-        db.push({
-            nombre: nombre.toUpperCase(),
-            valor, nCuotas, total,
-            cuotaVal: total / nCuotas,
-            saldo: total
-        });
+        if(editMode) {
+            db[curIdx].nombre = nombre;
+            db[curIdx].total = valor;
+            db[curIdx].saldo = valor; // Resetea saldo si se edita monto
+        } else {
+            const total = valor + (valor * (int/100));
+            const cuotaVal = total / cuotas;
+            let plan = [];
+            for(let n=1; n<=cuotas; n++) plan.push({ n, monto: cuotaVal, pagado: 0, estado: 'pendiente' });
+            db.push({ nombre, total, saldo: total, cuotaVal, nCuotas: cuotas, frecuencia: freq, plan, fecha: new Date().getTime() });
+        }
 
-        localStorage.setItem('prz_db', JSON.stringify(db));
-        cerrarModal('modal-nuevo');
+        saveDB();
+        cerrarModal('modal-form');
         renderCartera();
     }
 
+    function eliminarCliente() {
+        if(confirm("¿Estás seguro de eliminar este cliente? Se borrarán todos sus pagos.")) {
+            db.splice(curIdx, 1);
+            saveDB();
+            cerrarModal('modal-form');
+            changeView('view-cartera');
+        }
+    }
+
+    function saveDB() { localStorage.setItem('prz_db', JSON.stringify(db)); }
+
     function renderCartera() {
         const cont = document.getElementById('lista-clientes');
-        cont.innerHTML = db.length ? '' : '<p style="text-align:center; opacity:0.5; margin-top:50px;">No hay clientes registrados.<br>Toca el botón (+) para empezar.</p>';
-        db.forEach((p, i) => {
-            cont.innerHTML += `
-                <div class="card-prestamo" onclick="verDetalle(${i})">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <strong>${p.nombre}</strong>
-                        <span style="color:var(--accent); font-weight:bold;">$${Math.round(p.saldo).toLocaleString()}</span>
-                    </div>
-                    <div style="margin-top:8px; font-size:12px; opacity:0.7;">
-                        Original: $${Math.round(p.total).toLocaleString()} | ${p.nCuotas} cuotas
-                    </div>
-                </div>`;
-        });
+        cont.innerHTML = db.map((p, i) => `
+            <div class="card-prestamo" onclick="verDetalle(${i})">
+                <div style="display:flex; justify-content:space-between;">
+                    <strong>${p.nombre}</strong>
+                    <span style="color:var(--accent)">$${Math.round(p.saldo).toLocaleString('es-AR')}</span>
+                </div>
+            </div>
+        `).join('');
     }
 
     function verDetalle(i) {
         curIdx = i;
         const p = db[i];
         document.getElementById('det-nombre').innerText = p.nombre;
-        document.getElementById('det-saldo').innerText = `SALDO PENDIENTE: $${p.saldo.toLocaleString()}`;
-        document.getElementById('pago-info-cuota').innerText = `Valor de la cuota: $${p.cuotaVal.toLocaleString()}`;
-        
-        const listC = document.getElementById('lista-cuotas');
-        listC.innerHTML = '';
-        for(let n=1; n<=p.nCuotas; n++) {
-            listC.innerHTML += `
-                <div class="cuota-item">
-                    <div style="display:flex; align-items:center;">
-                        <div class="nro-cuota">${n}</div>
-                        <div>
-                            <div style="font-size:14px; font-weight:bold;">Cuota de capital</div>
-                            <div style="font-size:11px; color:#666;">Estado: Pendiente</div>
-                        </div>
+        document.getElementById('det-saldo').innerText = `SALDO: $${Math.round(p.saldo).toLocaleString('es-AR')}`;
+        document.getElementById('lista-cuotas').innerHTML = p.plan.map(c => `
+            <div class="cuota-item ${c.estado === 'pagada' ? 'cuota-pagada' : (c.pagado > 0 ? 'cuota-parcial' : '')}">
+                <div style="display:flex; align-items:center;">
+                    <div class="nro-cuota">${c.n}</div>
+                    <div>
+                        <div style="font-size:14px; font-weight:bold;">$${Math.round(c.monto).toLocaleString('es-AR')}</div>
+                        <div class="status-text">${c.estado === 'pagada' ? 'PAGADA' : (c.pagado > 0 ? 'RESTA: $' + Math.round(c.monto - c.pagado) : 'PENDIENTE')}</div>
                     </div>
-                    <strong style="color:#2e7d32;">$${p.cuotaVal.toLocaleString()}</strong>
-                </div>`;
-        }
-        changeView('view-detail');
+                </div>
+                ${c.estado === 'pagada' ? '✅' : ''}
+            </div>
+        `).join('');
+        changeView('view-detalle');
     }
 
-    function procesarAbono() {
-        const monto = parseFloat(document.getElementById('pago-monto').value);
-        if(!monto || isNaN(monto)) return alert("Ingresa un monto válido");
-        
-        const p = db[curIdx];
-        const dif = monto - p.cuotaVal;
-        p.saldo -= monto;
-        
-        let feedback = "";
-        if (dif === 0) feedback = "Pago exacto registrado.";
-        else if (dif < 0) feedback = "Pago parcial. Restan $" + Math.abs(dif).toFixed(2) + " de esta cuota.";
-        else feedback = "¡Adelanto registrado! Se descontaron $" + dif.toFixed(2) + " de la deuda total.";
-
-        localStorage.setItem('prz_db', JSON.stringify(db));
-        alert(feedback);
-        document.getElementById('pago-monto').value = "";
-        cerrarModal('modal-pago');
+    function registrarPago() {
+        let montoTipeado = document.getElementById('pago-monto').value;
+        let abono = clean(montoTipeado);
+        if(abono <= 0) return;
+        let p = db[curIdx];
+        let cuotasAfectadas = [];
+        p.saldo -= abono;
+        let abonoRestante = abono;
+        for(let cuota of p.plan) {
+            if(abonoRestante <= 0) break;
+            if(cuota.estado === 'pagada') continue;
+            cuotasAfectadas.push(cuota.n);
+            let falta = cuota.monto - cuota.pagado;
+            if(abonoRestante >= falta) { abonoRestante -= falta; cuota.pagado = cuota.monto; cuota.estado = 'pagada'; }
+            else { cuota.pagado += abonoRestante; abonoRestante = 0; cuota.estado = 'parcial'; }
+        }
+        saveDB();
+        let textoCuotas = cuotasAfectadas.length > 1 ? `${cuotasAfectadas[0]} a la ${cuotasAfectadas.slice(-1)} de ${p.nCuotas}` : `${cuotasAfectadas[0]} de ${p.nCuotas}`;
+        const mensaje = encodeURIComponent(`*PRZ PRESTAMOS*\n*Comprobante de Pago*\n\n👤 Cliente: ${p.nombre}\n🔢 Cuota: ${textoCuotas}\n💰 Monto: $${montoTipeado}\n\n¡Gracias!`);
+        document.getElementById('btn-whatsapp').onclick = () => window.open(`https://wa.me/?text=${mensaje}`, '_blank');
+        document.getElementById('confirmacion-pago').style.display = 'block';
+        document.getElementById('btn-save-pago').style.display = 'none';
         verDetalle(curIdx);
+    }
+
+    function exportarDatos() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "respaldo_prz_prestamos.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
     }
 
     renderCartera();
