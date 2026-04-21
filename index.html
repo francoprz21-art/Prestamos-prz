@@ -3,171 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRZ - Gestión de Préstamos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>PRZ PRÉSTAMOS - Cobros</title>
     <style>
-        :root {
-            --cobrapp-primary: #1ea2a4; 
-            --cobrapp-bg: #f0f7f7;
-        }
-        body { background-color: var(--cobrapp-bg); font-family: sans-serif; }
-        .bg-cobrapp { background-color: var(--cobrapp-primary); }
-        .text-cobrapp { color: var(--cobrapp-primary); }
-        .card-shadow { box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
-        .progress-bar { transition: width 0.6s ease-in-out; }
+        body { font-family: sans-serif; background-color: #0d1117; color: #c9d1d9; padding: 20px; }
+        .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; max-width: 400px; margin: auto; }
+        h2 { color: #58a6ff; text-align: center; }
+        label { display: block; margin-top: 10px; font-size: 14px; }
+        input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; margin-top: 20px; background-color: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #2ea043; }
+        #comprobante { margin-top: 20px; padding: 15px; border: 1px dashed #8b949e; background-color: #0d1117; display: none; }
+        .info-msg { margin-top: 10px; padding: 10px; border-radius: 6px; font-size: 13px; }
+        .pendiente { background: #bb800926; color: #d29922; border: 1px solid #bb800966; }
+        .excedente { background: #23863626; color: #3fb950; border: 1px solid #23863666; }
     </style>
 </head>
-<body class="min-h-screen p-4">
+<body>
 
-    <div class="max-w-md mx-auto space-y-6">
-        <div class="bg-white p-5 rounded-3xl card-shadow flex justify-between items-center border-b-4 border-cobrapp">
-            <div>
-                <h1 class="text-3xl font-black text-cobrapp italic tracking-tighter">PRZ</h1>
-                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Sistema de Cobros</p>
-            </div>
-            <div class="text-right">
-                <p class="text-[10px] text-gray-400 font-bold uppercase">Total en Calle</p>
-                <h2 id="totalPrestado" class="text-xl font-black text-gray-800">$0</h2>
-            </div>
-        </div>
+<div class="card">
+    <h2>PRZ PRÉSTAMOS</h2>
+    <label>Cliente</label>
+    <input type="text" id="cliente" placeholder="Nombre completo">
+    
+    <label>Número de Cuota</label>
+    <input type="number" id="cuota" placeholder="Ej: 1">
+    
+    <label>Valor de Cuota ($)</label>
+    <input type="number" id="valorCuota" placeholder="5000">
+    
+    <label>Monto que Abona ($)</label>
+    <input type="number" id="montoAbonado" placeholder="0.00">
 
-        <div class="bg-white p-6 rounded-3xl card-shadow border border-gray-50">
-            <h2 class="text-xs font-bold mb-4 text-cobrapp uppercase tracking-widest flex items-center gap-2">
-                <span class="w-2 h-2 bg-cobrapp rounded-full"></span> Nuevo Préstamo
-            </h2>
-            <div class="space-y-3">
-                <input id="cliente" type="text" placeholder="Nombre del cliente" class="w-full p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-cobrapp border-none">
-                
-                <div class="flex gap-2">
-                    <input id="monto" type="number" placeholder="Capital $" class="w-2/3 p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-cobrapp font-bold border-none">
-                    <input id="interes" type="number" placeholder="% Int." class="w-1/3 p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-cobrapp font-bold text-cobrapp border-none">
-                </div>
+    <button onclick="procesarPago()">GENERAR COBRO</button>
 
-                <div class="flex gap-2">
-                    <select id="frecuencia" class="p-4 bg-gray-50 rounded-2xl w-1/2 text-gray-500 font-semibold outline-none border-none">
-                        <option value="Diario">Diario</option>
-                        <option value="Semanal">Semanal</option>
-                        <option value="Quincenal">Quincenal</option>
-                        <option value="Mensual">Mensual</option>
-                    </select>
-                    <input id="cuotasTotal" type="number" placeholder="Cuotas" class="w-1/2 p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-cobrapp font-bold border-none">
-                </div>
-                
-                <button onclick="guardarPrestamo()" class="w-full bg-cobrapp text-white font-black py-4 rounded-2xl shadow-lg uppercase text-sm mt-2 hover:opacity-90 transition-all">
-                    Registrar Préstamo
-                </button>
-            </div>
-        </div>
+    <div id="resultadoMsg" class="info-msg" style="display:none;"></div>
 
-        <div id="listaPrestamos" class="space-y-4 pb-20"></div>
+    <div id="comprobante">
+        <center><strong>PRZ PRESTAMOS</strong></center><br>
+        Cliente: <span id="resCliente"></span><br>
+        Cuota N°: <span id="resCuota"></span><br>
+        Monto Abonado: $<span id="resMonto"></span><br>
+        <hr>
+        <small><span id="resEstado"></span></small>
     </div>
+</div>
 
-    <script>
-        let prestamos = JSON.parse(localStorage.getItem('datos_prestamos')) || [];
-
-        function guardarPrestamo() {
-            const cliente = document.getElementById('cliente').value;
-            const capital = parseFloat(document.getElementById('monto').value);
-            const porcInteres = parseFloat(document.getElementById('interes').value) || 0;
-            const cuotasTotal = parseInt(document.getElementById('cuotasTotal').value);
-            const frecuencia = document.getElementById('frecuencia').value;
-
-            if (!cliente || isNaN(capital) || isNaN(cuotasTotal)) {
-                return alert("⚠️ Faltan datos.");
-            }
-
-            const montoFinal = capital + (capital * (porcInteres / 100));
-            
-            const nuevo = {
-                id: Date.now(),
-                cliente,
-                capital,
-                montoFinal,
-                frecuencia,
-                cuotasTotal,
-                cuotasPagas: 0,
-                fecha: new Date().toLocaleDateString('es-AR')
-            };
-
-            prestamos.push(nuevo);
-            localStorage.setItem('datos_prestamos', JSON.stringify(prestamos));
-            
-            document.getElementById('cliente').value = '';
-            document.getElementById('monto').value = '';
-            document.getElementById('interes').value = '';
-            document.getElementById('cuotasTotal').value = '';
-            
-            renderizarPrestamos();
+<script>
+    function procesarPago() {
+        const cliente = document.getElementById('cliente').value;
+        const cuota = document.getElementById('cuota').value;
+        const valor = parseFloat(document.getElementById('valorCuota').value);
+        const abona = parseFloat(document.getElementById('montoAbonado').value);
+        
+        if(!cliente || !valor || isNaN(abona)) {
+            alert("Por favor completá los datos");
+            return;
         }
 
-        function cobrarCuota(id) {
-            const p = prestamos.find(x => x.id === id);
-            if (p.cuotasPagas < p.cuotasTotal) {
-                p.cuotasPagas++;
-                localStorage.setItem('datos_prestamos', JSON.stringify(prestamos));
-                renderizarPrestamos();
-            }
+        const dif = abona - valor;
+        const msgDiv = document.getElementById('resultadoMsg');
+        const comp = document.getElementById('comprobante');
+        let estado = "";
+
+        msgDiv.style.display = "block";
+        comp.style.display = "block";
+
+        if (dif === 0) {
+            msgDiv.className = "info-msg excedente";
+            msgDiv.innerText = "Cuota cancelada.";
+            estado = "PAGO TOTAL";
+        } else if (dif < 0) {
+            msgDiv.className = "info-msg pendiente";
+            msgDiv.innerText = "Saldo pendiente: $" + Math.abs(dif).toFixed(2);
+            estado = "PAGO PARCIAL - Restan: $" + Math.abs(dif).toFixed(2);
+        } else {
+            msgDiv.className = "info-msg excedente";
+            msgDiv.innerText = "Excedente a favor: $" + dif.toFixed(2);
+            estado = "PAGO CON EXCEDENTE - A cuenta: $" + dif.toFixed(2);
         }
 
-        function enviarWhatsApp(id) {
-            const p = prestamos.find(x => x.id === id);
-            const valorCuota = (p.montoFinal / p.cuotasTotal).toFixed(0);
-            const mensaje = `*Recibo PRZ*\n\nHola *${p.cliente}*,\nSe registró tu pago correctamente.\n\n✅ *Cuotas:* ${p.cuotasPagas}/${p.cuotasTotal}\n💰 *Valor abonado:* $${valorCuota}\n📈 *Saldo restante:* $${(p.montoFinal - (p.montoFinal/p.cuotasTotal)*p.cuotasPagas).toFixed(0)}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`);
-        }
+        document.getElementById('resCliente').innerText = cliente;
+        document.getElementById('resCuota').innerText = cuota;
+        document.getElementById('resMonto').innerText = abona.toFixed(2);
+        document.getElementById('resEstado').innerText = estado;
+    }
+</script>
 
-        function eliminarPrestamo(id) {
-            if(confirm("¿Eliminar de la cartera?")) {
-                prestamos = prestamos.filter(p => p.id !== id);
-                localStorage.setItem('datos_prestamos', JSON.stringify(prestamos));
-                renderizarPrestamos();
-            }
-        }
-
-        function renderizarPrestamos() {
-            const contenedor = document.getElementById('listaPrestamos');
-            const cajaTotal = document.getElementById('totalPrestado');
-            contenedor.innerHTML = '';
-            let totalCalle = 0;
-
-            prestamos.forEach(p => {
-                const porcentaje = (p.cuotasPagas / p.cuotasTotal) * 100;
-                const valorCuota = (p.montoFinal / p.cuotasTotal).toFixed(0);
-                totalCalle += (p.montoFinal - (p.montoFinal/p.cuotasTotal)*p.cuotasPagas);
-                
-                contenedor.innerHTML += `
-                    <div class="bg-white p-5 rounded-3xl card-shadow border-l-[6px] border-cobrapp">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-black text-lg text-gray-800">${p.cliente}</h3>
-                            <button onclick="eliminarPrestamo(${p.id})" class="text-gray-300">✕</button>
-                        </div>
-                        <p class="text-[9px] text-gray-400 font-bold uppercase mb-4 tracking-tighter">${p.frecuencia} | Inicio: ${p.fecha}</p>
-
-                        <div class="grid grid-cols-2 gap-2 mb-4">
-                            <div class="bg-gray-50 p-2 rounded-xl text-center">
-                                <p class="text-[9px] text-gray-400 font-bold uppercase">Cuota</p>
-                                <p class="text-xl font-black text-cobrapp">$${valorCuota}</p>
-                            </div>
-                            <div class="bg-gray-50 p-2 rounded-xl text-center">
-                                <p class="text-[9px] text-gray-400 font-bold uppercase">Restan</p>
-                                <p class="text-xl font-black text-gray-700">${p.cuotasTotal - p.cuotasPagas}</p>
-                            </div>
-                        </div>
-
-                        <div class="w-full bg-gray-100 rounded-full h-1.5 mb-4">
-                            <div class="bg-cobrapp h-1.5 rounded-full progress-bar" style="width: ${porcentaje}%"></div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="cobrarCuota(${p.id})" class="bg-gray-800 text-white py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-md">Cobrar</button>
-                            <button onclick="enviarWhatsApp(${p.id})" class="bg-[#25d366] text-white py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-md">WhatsApp</button>
-                        </div>
-                    </div>
-                `;
-            });
-            cajaTotal.innerText = `$${totalCalle.toLocaleString('es-AR')}`;
-        }
-        renderizarPrestamos();
-    </script>
 </body>
 </html>
