@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRZ PRESTAMOS - Elite v6.0</title>
+    <title>PRZ PRESTAMOS - Elite v7.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -15,11 +15,9 @@
         }
         .btn-emerald { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: bold; border-radius: 8px; }
         
-        /* ESTILOS DE CUOTAS (IGUAL AL VIDEO) */
         .cuota-card { 
             background: #ffffff; color: #1e293b; border-radius: 8px; 
             margin-bottom: 8px; border-left: 6px solid #cbd5e1; 
-            transition: all 0.3s;
         }
         .cuota-pagada { border-left-color: #10b981 !important; background: #f0fdf4; }
         .cuota-pendiente { border-left-color: #f59e0b !important; background: #fffbeb; }
@@ -47,7 +45,6 @@
         </div>
 
         <div class="card-prz p-5 mb-6 border-emerald-900/30">
-            <h2 class="text-[10px] font-bold text-slate-500 uppercase mb-3 text-center">Nueva Operación</h2>
             <div class="space-y-3">
                 <input type="text" id="nombreCliente" placeholder="NOMBRE DEL CLIENTE" class="input-prz uppercase font-bold">
                 <div class="grid grid-cols-2 gap-2">
@@ -63,11 +60,28 @@
                         <option value="30">Mensual</option>
                     </select>
                 </div>
+                <div>
+                    <label class="text-[10px] text-slate-500 font-bold uppercase ml-1">Fecha de Inicio</label>
+                    <input type="date" id="fechaInicioManual" class="input-prz">
+                </div>
                 <button onclick="crearPrestamo()" class="btn-emerald w-full py-3 shadow-lg">ACTIVAR CRÉDITO</button>
             </div>
         </div>
 
         <div id="listaClientes" class="space-y-4"></div>
+    </div>
+
+    <div id="modalEdit" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50">
+        <div class="card-prz p-6 w-full max-w-sm border-emerald-500/50">
+            <h2 class="text-white font-bold mb-4 uppercase text-sm">Editar Cliente</h2>
+            <input type="hidden" id="editId">
+            <label class="text-[10px] text-slate-500 uppercase">Nombre</label>
+            <input type="text" id="editNombre" class="input-prz mb-3 uppercase">
+            <div class="flex gap-2">
+                <button onclick="cerrarModal()" class="flex-1 bg-slate-800 py-2 rounded-lg font-bold">Cancelar</button>
+                <button onclick="guardarEdicion()" class="flex-1 btn-emerald py-2 rounded-lg">Guardar</button>
+            </div>
+        </div>
     </div>
 
     <div class="fixed bottom-5 right-5 flex flex-col gap-3">
@@ -77,7 +91,10 @@
     </div>
 
     <script>
-        let clientes = JSON.parse(localStorage.getItem('prz_v6_final')) || [];
+        let clientes = JSON.parse(localStorage.getItem('prz_v7_final')) || [];
+        
+        // Poner fecha de hoy por defecto en el input manual
+        document.getElementById('fechaInicioManual').valueAsDate = new Date();
 
         function formatearMoneda(input) {
             let valor = input.value.replace(/\D/g, "");
@@ -90,7 +107,7 @@
         }
 
         function guardar() {
-            localStorage.setItem('prz_v6_final', JSON.stringify(clientes));
+            localStorage.setItem('prz_v7_final', JSON.stringify(clientes));
             renderizar();
         }
 
@@ -100,17 +117,20 @@
             const interesPorc = parseFloat(document.getElementById('tasaInteres').value) || 0;
             const numCuotas = parseInt(document.getElementById('cuotas').value) || 1;
             const diasFrecuencia = parseInt(document.getElementById('frecuencia').value);
+            const fManual = new Date(document.getElementById('fechaInicioManual').value);
+            
+            // Ajustar zona horaria
+            fManual.setMinutes(fManual.getMinutes() + fManual.getTimezoneOffset());
 
             if(!nombre || monto <= 0) return alert("Carga nombre y monto");
 
             const totalCobrar = monto + (monto * (interesPorc / 100));
             const valorCuota = totalCobrar / numCuotas;
-            const hoy = new Date();
 
             let cronograma = [];
             for(let i = 1; i <= numCuotas; i++) {
-                let fVenc = new Date();
-                fVenc.setDate(hoy.getDate() + (i * diasFrecuencia));
+                let fVenc = new Date(fManual);
+                fVenc.setDate(fManual.getDate() + (i * diasFrecuencia));
                 cronograma.push({
                     numero: i,
                     fechaVenc: fVenc.toISOString(),
@@ -125,7 +145,7 @@
                 montoInicial: monto,
                 totalCobrar: totalCobrar,
                 cuotas: cronograma,
-                fechaCreacion: hoy.toISOString()
+                fechaCreacion: fManual.toISOString()
             });
 
             guardar();
@@ -134,9 +154,8 @@
         }
 
         function registrarPago(clienteId) {
-            const montoStr = prompt("Ingrese el monto que abona el cliente:");
+            const montoStr = prompt("Monto a abonar:");
             const montoAbonado = parseFloat(montoStr);
-            
             if(isNaN(montoAbonado) || montoAbonado <= 0) return;
 
             let remanente = montoAbonado;
@@ -145,24 +164,35 @@
 
             for(let cuota of cliente.cuotas) {
                 if(remanente <= 0) break;
-                let faltaParaCuota = cuota.montoTotal - cuota.montoPagado;
-                
-                if(faltaParaCuota > 0) {
-                    if(remanente >= faltaParaCuota) {
+                let falta = cuota.montoTotal - cuota.montoPagado;
+                if(falta > 0) {
+                    if(remanente >= falta) {
                         cuota.montoPagado = cuota.montoTotal;
-                        remanente -= faltaParaCuota;
+                        remanente -= falta;
                     } else {
                         cuota.montoPagado += remanente;
                         remanente = 0;
                     }
                 }
             }
-            
             guardar();
-
-            // ENVÍO DIRECTO A WHATSAPP (SOLICITADO)
-            const msg = `*COMPROBANTE DE PAGO*%0A*EMPRESA:* PRZ PRESTAMOS%0A*CLIENTE:* ${cliente.nombre}%0A*ABONÓ:* $${montoAbonado.toLocaleString('es-AR')}%0A*FECHA:* ${new Date().toLocaleDateString('es-AR')}%0A--------------------------%0A_Pago registrado correctamente._`;
+            const msg = `*COMPROBANTE DE PAGO*%0A*EMPRESA:* PRZ PRESTAMOS%0A*CLIENTE:* ${cliente.nombre}%0A*ABONÓ:* $${montoAbonado.toLocaleString('es-AR')}%0A--------------------------`;
             window.open(`https://wa.me/?text=${msg}`, '_blank');
+        }
+
+        function abrirModal(id) {
+            const c = clientes.find(x => x.id === id);
+            document.getElementById('editId').value = c.id;
+            document.getElementById('editNombre').value = c.nombre;
+            document.getElementById('modalEdit').classList.remove('hidden');
+        }
+        function cerrarModal() { document.getElementById('modalEdit').classList.add('hidden'); }
+        function guardarEdicion() {
+            const id = parseInt(document.getElementById('editId').value);
+            const index = clientes.findIndex(c => c.id === id);
+            clientes[index].nombre = document.getElementById('editNombre').value.toUpperCase();
+            guardar();
+            cerrarModal();
         }
 
         function renderizar() {
@@ -174,75 +204,55 @@
             clientes.forEach(c => {
                 capG += c.montoInicial;
                 let saldoPendiente = 0;
-                
                 const cuotasHTML = c.cuotas.map(ct => {
                     const fV = new Date(ct.fechaVenc);
                     const vencida = hoy > fV && ct.montoPagado < (ct.montoTotal - 0.1);
                     saldoPendiente += (ct.montoTotal - ct.montoPagado);
-                    
-                    let claseEstado = "";
-                    if(ct.montoPagado >= (ct.montoTotal - 0.1)) claseEstado = "cuota-pagada";
-                    else if(vencida) claseEstado = "cuota-vencida";
-                    else if(ct.montoPagado > 0) claseEstado = "cuota-pendiente";
-
+                    let clase = ct.montoPagado >= (ct.montoTotal - 0.1) ? "cuota-pagada" : (vencida ? "cuota-vencida" : (ct.montoPagado > 0 ? "cuota-pendiente" : ""));
                     return `
-                        <div class="cuota-card p-3 shadow-sm ${claseEstado}">
+                        <div class="cuota-card p-3 shadow-sm ${clase}">
                             <div class="flex justify-between items-center">
                                 <div class="text-[10px]">
-                                    <div class="font-black text-slate-800 uppercase mb-1">Cuota ${ct.numero}</div>
-                                    <div class="text-slate-400 font-bold"><i class="far fa-calendar-alt"></i> ${fV.toLocaleDateString('es-AR')}</div>
-                                    <div class="mt-1 text-slate-500">Valor Cuota: $${ct.montoTotal.toLocaleString('es-AR')}</div>
+                                    <div class="font-black text-slate-800 uppercase">Cuota ${ct.numero}</div>
+                                    <div class="text-slate-400 font-bold">${fV.toLocaleDateString('es-AR')}</div>
+                                    <div class="text-slate-500 italic">Total: $${ct.montoTotal.toLocaleString('es-AR')}</div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase">Abonado</p>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase">Pagado</p>
                                     <p class="text-sm font-black text-emerald">$${ct.montoPagado.toLocaleString('es-AR')}</p>
-                                    ${ct.montoPagado < (ct.montoTotal - 0.1) ? `<p class="text-[9px] text-amber-600 font-bold italic">Falta: $${(ct.montoTotal - ct.montoPagado).toLocaleString('es-AR')}</p>` : ''}
                                 </div>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 }).join('');
-
                 deuG += saldoPendiente;
 
                 const card = document.createElement('div');
                 card.className = 'card-prz mb-4';
                 card.innerHTML = `
-                    <div class="p-4 flex justify-between items-center cursor-pointer" onclick="document.getElementById('plan-${c.id}').classList.toggle('hidden')">
-                        <div>
-                            <h3 class="font-black text-white text-sm uppercase tracking-tight">${c.nombre}</h3>
-                            <p class="text-[10px] text-emerald font-bold">SALDO: $${saldoPendiente.toLocaleString('es-AR')}</p>
+                    <div class="p-4 flex justify-between items-center">
+                        <div class="cursor-pointer" onclick="document.getElementById('plan-${c.id}').classList.toggle('hidden')">
+                            <h3 class="font-black text-white text-sm uppercase">${c.nombre}</h3>
+                            <p class="text-[10px] text-emerald font-bold">$${saldoPendiente.toLocaleString('es-AR')} pendiente</p>
                         </div>
-                        <i class="fas fa-chevron-down text-slate-600 text-xs"></i>
+                        <div class="flex gap-4">
+                            <button onclick="abrirModal(${c.id})" class="text-slate-500"><i class="fas fa-edit text-xs"></i></button>
+                            <button onclick="eliminar(${c.id})" class="text-red-900"><i class="fas fa-trash-alt text-xs"></i></button>
+                        </div>
                     </div>
                     <div id="plan-${c.id}" class="hidden p-3 bg-slate-900/50 border-t border-slate-700">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="text-[9px] font-bold text-slate-500 uppercase">Detalle de Cuotas</span>
-                            <button onclick="registrarPago(${c.id})" class="bg-emerald-500 text-white text-[10px] px-4 py-1.5 rounded-full font-black uppercase shadow-lg">
-                                <i class="fas fa-dollar-sign"></i> REGISTRAR PAGO
-                            </button>
-                        </div>
-                        <div class="max-h-72 overflow-y-auto pr-1">
-                            ${cuotasHTML}
-                        </div>
-                        <div class="mt-4 flex justify-between items-center">
-                            <button onclick="eliminar(${c.id})" class="text-[9px] text-red-900 font-bold uppercase">Borrar Cliente</button>
-                            <span class="text-[8px] text-slate-700">INICIO: ${new Date(c.fechaCreacion).toLocaleDateString()}</span>
-                        </div>
-                    </div>
-                `;
+                        <button onclick="registrarPago(${c.id})" class="btn-emerald w-full py-2 text-xs mb-4 uppercase">Registrar Pago</button>
+                        <div class="max-h-72 overflow-y-auto">${cuotasHTML}</div>
+                    </div>`;
                 lista.appendChild(card);
             });
-
             document.getElementById('totalCapital').innerText = `$${capG.toLocaleString('es-AR')}`;
             document.getElementById('totalDeuda').innerText = `$${deuG.toLocaleString('es-AR')}`;
         }
 
-        function eliminar(id) { if(confirm("¿Eliminar cliente?")) { clientes = clientes.filter(c => c.id !== id); guardar(); } }
+        function eliminar(id) { if(confirm("¿Borrar préstamo?")) { clientes = clientes.filter(c => c.id !== id); guardar(); } }
         function exportarDatos() {
             const blob = new Blob([JSON.stringify(clientes)], {type: "application/json"});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); 
-            a.download = `PRZ_BACKUP.json`; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `PRZ_BACKUP.json`; a.click();
         }
         function importarDatos(e) {
             const reader = new FileReader();
