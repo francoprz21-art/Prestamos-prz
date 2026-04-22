@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRZ PRESTAMOS - Elite v7.0</title>
+    <title>PRZ PRESTAMOS - Elite v8.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { background-color: #060a0f; color: #e2e8f0; font-family: 'Inter', sans-serif; }
         .card-prz { background: #111827; border: 1px solid #1f2937; border-radius: 12px; }
         .input-prz { 
-            background: #1f2937; border: 1px solid #374151; color: white; 
-            border-radius: 8px; padding: 10px; width: 100%;
+            background: #1f2937 !important; border: 1px solid #374151 !important; color: white !important; 
+            border-radius: 8px; padding: 12px; width: 100%;
         }
         .btn-emerald { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: bold; border-radius: 8px; }
         
+        /* DISEÑO DE CUOTAS BLANCAS (ESTILO VIDEO) */
         .cuota-card { 
             background: #ffffff; color: #1e293b; border-radius: 8px; 
-            margin-bottom: 8px; border-left: 6px solid #cbd5e1; 
+            margin-bottom: 10px; border-left: 6px solid #cbd5e1; 
         }
         .cuota-pagada { border-left-color: #10b981 !important; background: #f0fdf4; }
         .cuota-pendiente { border-left-color: #f59e0b !important; background: #fffbeb; }
@@ -39,32 +40,37 @@
                 <p id="totalCapital" class="text-lg font-bold text-white">$0</p>
             </div>
             <div class="card-prz p-4 border-t-4 border-t-emerald-500 text-center">
-                <p class="text-[9px] text-slate-400 uppercase font-bold">Cartera con Ganancia</p>
+                <p class="text-[9px] text-slate-400 uppercase font-bold">Total a Cobrar</p>
                 <p id="totalDeuda" class="text-lg font-bold text-emerald">$0</p>
             </div>
         </div>
 
         <div class="card-prz p-5 mb-6 border-emerald-900/30">
-            <div class="space-y-3">
+            <h2 class="text-xs font-bold text-slate-500 uppercase mb-4 text-center">Nueva Operación</h2>
+            <div class="space-y-4">
                 <input type="text" id="nombreCliente" placeholder="NOMBRE DEL CLIENTE" class="input-prz uppercase font-bold">
+                
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" id="montoInput" oninput="formatearMoneda(this)" placeholder="Monto Préstamo" class="input-prz text-emerald font-bold">
-                    <input type="number" id="tasaInteres" placeholder="Interés %" class="input-prz">
+                    <input type="text" id="montoInput" oninput="formatearMoneda(this)" placeholder="Monto" class="input-prz text-emerald font-bold text-lg">
+                    <input type="number" id="tasaInteres" placeholder="Interés %" class="input-prz text-lg">
                 </div>
+
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="number" id="cuotas" placeholder="Cantidad Cuotas" class="input-prz">
-                    <select id="frecuencia" class="input-prz">
-                        <option value="1">Diario</option>
-                        <option value="7">Semanal</option>
-                        <option value="15">Quincenal</option>
-                        <option value="30">Mensual</option>
+                    <input type="number" id="cuotas" placeholder="Cuotas" class="input-prz">
+                    <select id="frecuencia" class="input-prz font-bold text-xs">
+                        <option value="1">DIARIO</option>
+                        <option value="7">SEMANAL</option>
+                        <option value="15">QUINCENAL</option>
+                        <option value="30">MENSUAL</option>
                     </select>
                 </div>
-                <div>
-                    <label class="text-[10px] text-slate-500 font-bold uppercase ml-1">Fecha de Inicio</label>
-                    <input type="date" id="fechaInicioManual" class="input-prz">
+
+                <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Fecha de Inicio del Préstamo:</label>
+                    <input type="date" id="fechaInicioManual" class="w-full bg-transparent text-white focus:outline-none">
                 </div>
-                <button onclick="crearPrestamo()" class="btn-emerald w-full py-3 shadow-lg">ACTIVAR CRÉDITO</button>
+
+                <button onclick="crearPrestamo()" class="btn-emerald w-full py-4 shadow-lg text-sm uppercase tracking-widest">Activar Crédito</button>
             </div>
         </div>
 
@@ -72,11 +78,10 @@
     </div>
 
     <div id="modalEdit" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50">
-        <div class="card-prz p-6 w-full max-w-sm border-emerald-500/50">
-            <h2 class="text-white font-bold mb-4 uppercase text-sm">Editar Cliente</h2>
+        <div class="card-prz p-6 w-full max-w-sm">
+            <h3 class="text-white font-bold mb-4 uppercase">Editar Nombre</h3>
             <input type="hidden" id="editId">
-            <label class="text-[10px] text-slate-500 uppercase">Nombre</label>
-            <input type="text" id="editNombre" class="input-prz mb-3 uppercase">
+            <input type="text" id="editNombre" class="input-prz mb-4 uppercase">
             <div class="flex gap-2">
                 <button onclick="cerrarModal()" class="flex-1 bg-slate-800 py-2 rounded-lg font-bold">Cancelar</button>
                 <button onclick="guardarEdicion()" class="flex-1 btn-emerald py-2 rounded-lg">Guardar</button>
@@ -84,16 +89,8 @@
         </div>
     </div>
 
-    <div class="fixed bottom-5 right-5 flex flex-col gap-3">
-        <button onclick="exportarDatos()" class="bg-slate-800 p-4 rounded-full text-emerald shadow-xl border border-emerald-900/50"><i class="fas fa-download"></i></button>
-        <button onclick="document.getElementById('importInput').click()" class="bg-slate-800 p-4 rounded-full text-slate-500 border border-slate-700"><i class="fas fa-upload"></i></button>
-        <input type="file" id="importInput" class="hidden" onchange="importarDatos(event)">
-    </div>
-
     <script>
-        let clientes = JSON.parse(localStorage.getItem('prz_v7_final')) || [];
-        
-        // Poner fecha de hoy por defecto en el input manual
+        let clientes = JSON.parse(localStorage.getItem('prz_v8_db')) || [];
         document.getElementById('fechaInicioManual').valueAsDate = new Date();
 
         function formatearMoneda(input) {
@@ -107,7 +104,7 @@
         }
 
         function guardar() {
-            localStorage.setItem('prz_v7_final', JSON.stringify(clientes));
+            localStorage.setItem('prz_v8_db', JSON.stringify(clientes));
             renderizar();
         }
 
@@ -117,20 +114,21 @@
             const interesPorc = parseFloat(document.getElementById('tasaInteres').value) || 0;
             const numCuotas = parseInt(document.getElementById('cuotas').value) || 1;
             const diasFrecuencia = parseInt(document.getElementById('frecuencia').value);
-            const fManual = new Date(document.getElementById('fechaInicioManual').value);
             
-            // Ajustar zona horaria
-            fManual.setMinutes(fManual.getMinutes() + fManual.getTimezoneOffset());
+            // Capturar fecha manual
+            const fInput = document.getElementById('fechaInicioManual').value;
+            const fInicio = fInput ? new Date(fInput + "T00:00:00") : new Date();
 
-            if(!nombre || monto <= 0) return alert("Carga nombre y monto");
+            if(!nombre || monto <= 0) return alert("Completa los datos");
 
-            const totalCobrar = monto + (monto * (interesPorc / 100));
+            const totalInteres = monto * (interesPorc / 100);
+            const totalCobrar = monto + totalInteres;
             const valorCuota = totalCobrar / numCuotas;
 
             let cronograma = [];
             for(let i = 1; i <= numCuotas; i++) {
-                let fVenc = new Date(fManual);
-                fVenc.setDate(fManual.getDate() + (i * diasFrecuencia));
+                let fVenc = new Date(fInicio);
+                fVenc.setDate(fInicio.getDate() + (i * diasFrecuencia));
                 cronograma.push({
                     numero: i,
                     fechaVenc: fVenc.toISOString(),
@@ -145,38 +143,42 @@
                 montoInicial: monto,
                 totalCobrar: totalCobrar,
                 cuotas: cronograma,
-                fechaCreacion: fManual.toISOString()
+                fechaCreacion: fInicio.toISOString()
             });
 
             guardar();
             document.getElementById('nombreCliente').value = '';
             document.getElementById('montoInput').value = '';
+            document.getElementById('tasaInteres').value = '';
+            document.getElementById('cuotas').value = '';
         }
 
         function registrarPago(clienteId) {
-            const montoStr = prompt("Monto a abonar:");
+            const montoStr = prompt("Monto que entrega el cliente:");
             const montoAbonado = parseFloat(montoStr);
             if(isNaN(montoAbonado) || montoAbonado <= 0) return;
 
             let remanente = montoAbonado;
             const cIdx = clientes.findIndex(c => c.id === clienteId);
-            let cliente = clientes[cIdx];
+            let c = clientes[cIdx];
 
-            for(let cuota of cliente.cuotas) {
+            for(let cuota of c.cuotas) {
                 if(remanente <= 0) break;
-                let falta = cuota.montoTotal - cuota.montoPagado;
-                if(falta > 0) {
-                    if(remanente >= falta) {
+                let deudaCuota = cuota.montoTotal - cuota.montoPagado;
+                
+                if(deudaCuota > 0.01) {
+                    if(remanente >= deudaCuota) {
                         cuota.montoPagado = cuota.montoTotal;
-                        remanente -= falta;
+                        remanente -= deudaCuota;
                     } else {
                         cuota.montoPagado += remanente;
                         remanente = 0;
                     }
                 }
             }
+            
             guardar();
-            const msg = `*COMPROBANTE DE PAGO*%0A*EMPRESA:* PRZ PRESTAMOS%0A*CLIENTE:* ${cliente.nombre}%0A*ABONÓ:* $${montoAbonado.toLocaleString('es-AR')}%0A--------------------------`;
+            const msg = `*PRZ PRESTAMOS - COMPROBANTE*%0A*Cliente:* ${c.nombre}%0A*Abonó:* $${montoAbonado.toLocaleString('es-AR')}%0A*Fecha:* ${new Date().toLocaleDateString()}%0A--------------------------`;
             window.open(`https://wa.me/?text=${msg}`, '_blank');
         }
 
@@ -203,62 +205,72 @@
 
             clientes.forEach(c => {
                 capG += c.montoInicial;
-                let saldoPendiente = 0;
+                let saldoC = 0;
+                
                 const cuotasHTML = c.cuotas.map(ct => {
                     const fV = new Date(ct.fechaVenc);
                     const vencida = hoy > fV && ct.montoPagado < (ct.montoTotal - 0.1);
-                    saldoPendiente += (ct.montoTotal - ct.montoPagado);
-                    let clase = ct.montoPagado >= (ct.montoTotal - 0.1) ? "cuota-pagada" : (vencida ? "cuota-vencida" : (ct.montoPagado > 0 ? "cuota-pendiente" : ""));
+                    saldoC += (ct.montoTotal - ct.montoPagado);
+                    
+                    let clase = "";
+                    if(ct.montoPagado >= (ct.montoTotal - 0.1)) clase = "cuota-pagada";
+                    else if(vencida) clase = "cuota-vencida";
+                    else if(ct.montoPagado > 0) clase = "cuota-pendiente";
+
                     return `
                         <div class="cuota-card p-3 shadow-sm ${clase}">
                             <div class="flex justify-between items-center">
                                 <div class="text-[10px]">
                                     <div class="font-black text-slate-800 uppercase">Cuota ${ct.numero}</div>
-                                    <div class="text-slate-400 font-bold">${fV.toLocaleDateString('es-AR')}</div>
-                                    <div class="text-slate-500 italic">Total: $${ct.montoTotal.toLocaleString('es-AR')}</div>
+                                    <div class="font-bold text-slate-400">${fV.toLocaleDateString('es-AR')}</div>
+                                    <div class="text-slate-500">Valor: $${ct.montoTotal.toLocaleString('es-AR')}</div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-[9px] font-bold text-slate-400 uppercase">Pagado</p>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase">Abonado</p>
                                     <p class="text-sm font-black text-emerald">$${ct.montoPagado.toLocaleString('es-AR')}</p>
+                                    ${ct.montoPagado < (ct.montoTotal - 0.1) && ct.montoPagado > 0 ? `<p class="text-[9px] text-amber-600 font-bold">Falta: $${(ct.montoTotal - ct.montoPagado).toLocaleString('es-AR')}</p>` : ''}
                                 </div>
                             </div>
                         </div>`;
                 }).join('');
-                deuG += saldoPendiente;
+                deuG += saldoC;
 
-                const card = document.createElement('div');
-                card.className = 'card-prz mb-4';
-                card.innerHTML = `
+                const div = document.createElement('div');
+                div.className = 'card-prz mb-4 shadow-xl';
+                div.innerHTML = `
                     <div class="p-4 flex justify-between items-center">
                         <div class="cursor-pointer" onclick="document.getElementById('plan-${c.id}').classList.toggle('hidden')">
-                            <h3 class="font-black text-white text-sm uppercase">${c.nombre}</h3>
-                            <p class="text-[10px] text-emerald font-bold">$${saldoPendiente.toLocaleString('es-AR')} pendiente</p>
+                            <h3 class="font-black text-white text-sm uppercase tracking-tight">${c.nombre}</h3>
+                            <p class="text-[10px] text-emerald font-bold">$${saldoC.toLocaleString('es-AR')} pendientes</p>
                         </div>
                         <div class="flex gap-4">
-                            <button onclick="abrirModal(${c.id})" class="text-slate-500"><i class="fas fa-edit text-xs"></i></button>
-                            <button onclick="eliminar(${c.id})" class="text-red-900"><i class="fas fa-trash-alt text-xs"></i></button>
+                            <button onclick="abrirModal(${c.id})" class="text-slate-500"><i class="fas fa-edit"></i></button>
+                            <button onclick="eliminar(${c.id})" class="text-red-900"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </div>
                     <div id="plan-${c.id}" class="hidden p-3 bg-slate-900/50 border-t border-slate-700">
-                        <button onclick="registrarPago(${c.id})" class="btn-emerald w-full py-2 text-xs mb-4 uppercase">Registrar Pago</button>
-                        <div class="max-h-72 overflow-y-auto">${cuotasHTML}</div>
+                        <button onclick="registrarPago(${c.id})" class="btn-emerald w-full py-3 text-xs mb-4 uppercase tracking-widest shadow-lg">
+                            <i class="fas fa-dollar-sign mr-2"></i> Registrar un Pago
+                        </button>
+                        <div class="max-h-80 overflow-y-auto pr-1">
+                            ${cuotasHTML}
+                        </div>
                     </div>`;
-                lista.appendChild(card);
+                lista.appendChild(div);
             });
+
             document.getElementById('totalCapital').innerText = `$${capG.toLocaleString('es-AR')}`;
             document.getElementById('totalDeuda').innerText = `$${deuG.toLocaleString('es-AR')}`;
         }
 
-        function eliminar(id) { if(confirm("¿Borrar préstamo?")) { clientes = clientes.filter(c => c.id !== id); guardar(); } }
+        function eliminar(id) { if(confirm("¿Eliminar préstamo?")) { clientes = clientes.filter(c => c.id !== id); guardar(); } }
+        
         function exportarDatos() {
             const blob = new Blob([JSON.stringify(clientes)], {type: "application/json"});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `PRZ_BACKUP.json`; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = "PRZ_BACKUP.json"; a.click();
         }
-        function importarDatos(e) {
-            const reader = new FileReader();
-            reader.onload = (ev) => { clientes = JSON.parse(ev.target.result); guardar(); };
-            reader.readAsText(e.target.files[0]);
-        }
+
         renderizar();
     </script>
 </body>
