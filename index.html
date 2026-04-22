@@ -78,7 +78,16 @@
     </div>
 
     <script>
-        let clientes = JSON.parse(localStorage.getItem('prz_v12_db')) || [];
+        // 1. CARGA INICIAL REFORZADA
+        let clientes = [];
+        try {
+            const data = localStorage.getItem('prz_v12_db');
+            clientes = data ? JSON.parse(data) : [];
+        } catch (e) {
+            console.error("Error al cargar datos", e);
+            clientes = [];
+        }
+
         document.getElementById('fechaInicioManual').valueAsDate = new Date();
 
         function formatearMoneda(input) {
@@ -91,6 +100,7 @@
             return parseFloat(str.toString().replace(/\./g, '').replace(/,/g, '')) || 0;
         }
 
+        // 2. FUNCIÓN GUARDAR MEJORADA
         function guardar() {
             localStorage.setItem('prz_v12_db', JSON.stringify(clientes));
             renderizar();
@@ -117,6 +127,11 @@
             const fi = new Date(document.getElementById('fechaInicioManual').value + "T00:00:00");
             if(!n || m <= 0) return alert("Faltan datos");
             clientes.push(generarPlan(n, m, t, c, f, fi));
+            
+            // Limpiar campos después de crear
+            document.getElementById('nombreCliente').value = "";
+            document.getElementById('montoInput').value = "";
+            
             guardar();
         }
 
@@ -145,7 +160,8 @@
         }
 
         function registrarPago(id) {
-            const abono = parseFloat(prompt("Monto a cobrar:"));
+            const abonoStr = prompt("Monto a cobrar:");
+            const abono = parseFloat(abonoStr);
             if(!abono || abono <= 0) return;
             let rem = abono;
             const c = clientes.find(x => x.id === id);
@@ -169,6 +185,7 @@
             const lista = document.getElementById('listaClientes');
             lista.innerHTML = '';
             let capG = 0, deuG = 0, hoy = new Date();
+            
             clientes.forEach(c => {
                 capG += c.monto;
                 let pendienteC = 0;
@@ -213,21 +230,11 @@
 
         function eliminar(id) { if(confirm("¿Borrar?")) { clientes = clientes.filter(x => x.id !== id); guardar(); } }
         function cerrarModal() { document.getElementById('modalEdit').classList.add('hidden'); }
-        renderizar();
+
+        // 3. INICIO AUTOMÁTICO
+        window.addEventListener('load', renderizar);
     </script>
-        <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js')
-            .then(reg => {
-              console.log('PRZ App: Service Worker registrado con éxito', reg);
-            })
-            .catch(err => {
-              console.log('PRZ App: Error al registrar el Service Worker', err);
-            });
-        });
-      }
-    </script>
+
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -237,9 +244,5 @@
         });
       }
     </script>
-    
-  </body>
-</html>
-
 </body>
 </html>
