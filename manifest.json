@@ -1,0 +1,16 @@
+{
+  "name": "PRZ PRESTAMOS",
+  "short_name": "PRZ",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#060a0f",
+  "theme_color": "#060a0f",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/5501/5501375.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
