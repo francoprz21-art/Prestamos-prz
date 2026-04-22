@@ -3,218 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRZ PRESTAMOS PRO</title>
+    <title>PRZ PRESTAMOS - Gestión Integral</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #0a1f1c; --secondary: #122c28; --accent: #4caf50; --text: #e0e0e0; --card-bg: #ffffff10; --danger: #ff5252; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--primary); color: var(--text); margin: 0; padding-bottom: 80px; }
-        .header { background: linear-gradient(to bottom, #1a3c37, var(--primary)); padding: 20px; text-align: center; border-bottom: 1px solid #ffffff10; }
-        .container { padding: 15px; }
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: var(--card-bg); padding: 15px; border-radius: 15px; border: 1px solid #ffffff10; text-align: center; }
-        .stat-card span { display: block; font-size: 11px; opacity: 0.7; text-transform: uppercase; margin-bottom: 5px; }
-        .stat-card strong { font-size: 16px; color: var(--accent); }
-        .search-box { width: 100%; padding: 12px; border-radius: 25px; border: 1px solid #ffffff20; background: #ffffff10; color: white; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; }
-        .card-client { background: var(--card-bg); border-radius: 15px; padding: 15px; margin-bottom: 10px; border-left: 5px solid var(--accent); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .cuota-card { background: #fff; color: #333; border-radius: 12px; padding: 15px; margin-bottom: 10px; border-left: 6px solid #ccc; transition: 0.3s; }
-        .cuota-card.pagada { border-left-color: var(--accent); opacity: 0.7; background: #e8f5e9; }
-        .cuota-card.parcial { border-left-color: #ff9800; background: #fff3e0; }
-        .cuota-header { display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 8px; }
-        .cuota-body { display: grid; grid-template-columns: 1fr 1fr; font-size: 13px; gap: 5px; }
-        .label-c { color: #888; font-size: 11px; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; padding: 20px; box-sizing: border-box; z-index: 100; overflow-y: auto; }
-        input, select { width: 100%; padding: 14px; margin: 8px 0; border-radius: 10px; border: 1px solid #ffffff30; background: #000; color: white; box-sizing: border-box; font-size: 16px; }
-        .btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; font-size: 16px; margin-top: 10px; cursor: pointer; }
-        .btn-add { background: var(--accent); color: white; }
-        .btn-cancel { background: transparent; color: #aaa; }
-        .fab { position: fixed; bottom: 90px; right: 20px; background: var(--accent); width: 60px; height: 60px; border-radius: 50%; font-size: 30px; color: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 10; }
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { background-color: #1e293b; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .input-prz { background: #334155; border: 1px solid #475569; color: white; border-radius: 8px; padding: 10px; width: 100%; }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); transition: all 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
     </style>
 </head>
-<body>
+<body class="p-4 pb-20">
 
-<div id="view-cartera">
-    <div class="header"><h2>PRZ PRESTAMOS</h2></div>
-    <div class="container">
-        <div class="dashboard">
-            <div class="stat-card"><span>En la Calle</span><strong id="dash-calle">$0</strong></div>
-            <div class="stat-card"><span>Capital Invertido</span><strong id="dash-invest">$0</strong></div>
-        </div>
-        <input type="text" id="buscador" class="search-box" placeholder="🔍 Buscar cliente..." onkeyup="renderCartera()">
-        <div id="lista-clientes"></div>
-    </div>
-    <button class="fab" onclick="abrirNuevo()">+</button>
-</div>
-
-<div id="view-detalle" style="display:none;">
-    <div class="header">
-        <button onclick="irHome()" style="float:left; background:none; border:none; color:white; font-size:24px;">←</button>
-        <button onclick="eliminarPrestamo()" style="float:right; background:none; border:none; color:var(--danger); font-size:20px;">🗑️</button>
-        <h3 id="det-nombre" style="margin:0">Cliente</h3>
-        <small id="det-info" style="color:var(--accent)"></small>
-    </div>
-    <div class="container" id="lista-cuotas"></div>
-    <div class="container"><button class="btn btn-add" onclick="abrirPago()">💵 REGISTRAR COBRO</button></div>
-</div>
-
-<div id="modal-nuevo" class="modal">
-    <h3>Nuevo Crédito</h3>
-    <input type="text" id="f-nombre" placeholder="Nombre del Cliente">
-    <input type="text" id="f-capital" placeholder="Capital a Entregar ($)" oninput="handleInput(this)">
-    <input type="number" id="f-tasa" placeholder="Interés Total (%)" oninput="calcularPreview()">
-    <input type="number" id="f-cuotas" placeholder="Cantidad de Cuotas" oninput="calcularPreview()">
-    <select id="f-frecuencia">
-        <option value="Diario">Diario</option>
-        <option value="Semanal" selected>Semanal</option>
-        <option value="Quincenal">Quincenal</option>
-        <option value="Mensual">Mensual</option>
-    </select>
-    <div style="background:#000; padding:15px; border-radius:10px; margin:10px 0;">
-        <span style="font-size:12px; color:var(--accent)">RESUMEN:</span><br>
-        <strong>Total a Cobrar: <span id="pre-total">$0</span></strong><br>
-        <small>Valor Cuota: <span id="pre-cuota">$0</span></small>
-    </div>
-    <button class="btn btn-add" onclick="guardarPrestamo()">CREAR PRÉSTAMO</button>
-    <button class="btn btn-cancel" onclick="cerrarModal('modal-nuevo')">CANCELAR</button>
-</div>
-
-<div id="modal-pago" class="modal">
-    <h3>Registrar Pago</h3>
-    <p id="p-info-cuota" style="font-size:14px; margin-bottom:5px;"></p>
-    <input type="text" id="p-monto" placeholder="Monto a Cobrar ($)" oninput="handleInput(this)">
-    <button class="btn btn-add" onclick="procesarPago()">CONFIRMAR Y WHATSAPP</button>
-    <button class="btn btn-cancel" onclick="cerrarModal('modal-pago')">CANCELAR</button>
-</div>
-
-<script>
-    let db = JSON.parse(localStorage.getItem('prz_db_v3')) || [];
-    let curIdx = null;
-
-    // Función para poner puntos de mil mientras se escribe
-    function handleInput(el) {
-        let val = el.value.replace(/\D/g, "");
-        el.value = val ? new Intl.NumberFormat('es-AR').format(val) : "";
-        if(el.id !== 'p-monto') calcularPreview();
-    }
-
-    function cleanNum(str) { return parseFloat(str.toString().replace(/\./g, "")) || 0; }
-    function save() { localStorage.setItem('prz_db_v3', JSON.stringify(db)); }
-
-    function calcularPreview() {
-        const cap = cleanNum(document.getElementById('f-capital').value);
-        const tasa = parseFloat(document.getElementById('f-tasa').value) || 0;
-        const n = parseInt(document.getElementById('f-cuotas').value) || 1;
-        const total = cap + (cap * (tasa/100));
-        document.getElementById('pre-total').innerText = "$" + Math.round(total).toLocaleString('es-AR');
-        document.getElementById('pre-cuota').innerText = "$" + Math.round(total/n).toLocaleString('es-AR');
-    }
-
-    function guardarPrestamo() {
-        const nombre = document.getElementById('f-nombre').value.toUpperCase();
-        const capital = cleanNum(document.getElementById('f-capital').value);
-        const tasa = parseFloat(document.getElementById('f-tasa').value) || 0;
-        const n = parseInt(document.getElementById('f-cuotas').value);
-        const freq = document.getElementById('f-frecuencia').value;
-
-        if(!nombre || !capital || !n) return alert("Faltan datos");
-
-        const totalInt = capital * (tasa/100);
-        const totalCobrar = capital + totalInt;
-        const valorCuota = totalCobrar / n;
-
-        let plan = [];
-        for(let i=1; i<=n; i++) {
-            plan.push({ n: i, total: valorCuota, pagado: 0, estado: 'Pendiente' });
-        }
-
-        db.push({ nombre, capital, totalCobrar, saldo: totalCobrar, n, freq, plan });
-        save();
-        cerrarModal('modal-nuevo');
-        renderCartera();
-    }
-
-    function renderCartera() {
-        const q = document.getElementById('buscador').value.toLowerCase();
-        const lista = document.getElementById('lista-clientes');
-        let enCalle = 0, invest = 0;
-
-        lista.innerHTML = "";
-        db.forEach((p, idx) => {
-            if(p.nombre.toLowerCase().includes(q)) {
-                enCalle += p.saldo;
-                invest += p.capital;
-                lista.innerHTML += `
-                <div class="card-client" onclick="verDetalle(${idx})">
-                    <div><strong>${p.nombre}</strong><br><small>${p.freq} - ${p.n} cuotas</small></div>
-                    <div style="text-align:right"><span style="color:var(--accent); font-weight:bold">$${Math.round(p.saldo).toLocaleString('es-AR')}</span></div>
-                </div>`;
-            }
-        });
-        document.getElementById('dash-calle').innerText = "$" + Math.round(enCalle).toLocaleString('es-AR');
-        document.getElementById('dash-invest').innerText = "$" + Math.round(invest).toLocaleString('es-AR');
-    }
-
-    function verDetalle(i) {
-        curIdx = i;
-        const p = db[i];
-        document.getElementById('det-nombre').innerText = p.nombre;
-        document.getElementById('det-info').innerText = `${p.freq} | SALDO: $${Math.round(p.saldo).toLocaleString('es-AR')}`;
+    <div class="max-w-md mx-auto mb-6">
+        <h1 class="text-2xl font-bold text-center mb-6 text-blue-400">PRZ PRESTAMOS</h1>
         
-        const l = document.getElementById('lista-cuotas');
-        l.innerHTML = p.plan.map(c => `
-            <div class="cuota-card ${c.estado === 'Pagada' ? 'pagada' : (c.estado === 'Parcial' ? 'parcial' : '')}">
-                <div class="cuota-header"><span>CUOTA ${c.n}</span><span>${c.estado}</span></div>
-                <div class="cuota-body">
-                    <div><span class="label-c">VALOR CUOTA:</span><br>$${Math.round(c.total).toLocaleString('es-AR')}</div>
-                    <div><span class="label-c">ABONADO:</span><br>$${Math.round(c.pagado).toLocaleString('es-AR')}</div>
-                    <div><span class="label-c">FALTA:</span><br><strong>$${Math.round(c.total - c.pagado).toLocaleString('es-AR')}</strong></div>
-                </div>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="card p-4 text-center">
+                <p class="text-xs text-slate-400 uppercase">Capital Prestado</p>
+                <p id="totalCapital" class="text-xl font-bold text-emerald-400">$0</p>
             </div>
-        `).join('');
-        document.getElementById('view-cartera').style.display = 'none';
-        document.getElementById('view-detalle').style.display = 'block';
-    }
+            <div class="card p-4 text-center">
+                <p class="text-xs text-slate-400 uppercase">Total a Cobrar</p>
+                <p id="totalDeuda" class="text-xl font-bold text-blue-400">$0</p>
+            </div>
+        </div>
 
-    function abrirPago() {
-        const p = db[curIdx];
-        const proxima = p.plan.find(c => c.estado !== 'Pagada');
-        if(!proxima) return alert("Crédito pagado");
-        document.getElementById('p-info-cuota').innerText = `Cobrando a: ${p.nombre}`;
-        document.getElementById('p-monto').value = Math.round(proxima.total - proxima.pagado).toLocaleString('es-AR');
-        document.getElementById('modal-pago').style.display = 'block';
-    }
+        <div class="card p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4 border-b border-slate-700 pb-2">Nuevo Préstamo</h2>
+            <div class="space-y-4">
+                <input type="text" id="nombreCliente" placeholder="Nombre del Cliente" class="input-prz">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="montoPrestamo" placeholder="Monto ($)" class="input-prz">
+                    <input type="number" id="tasaInteres" placeholder="Interés (%)" class="input-prz">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="cuotas" placeholder="N° Cuotas" class="input-prz">
+                    <select id="frecuencia" class="input-prz">
+                        <option value="diario">Diario</option>
+                        <option value="semanal">Semanal</option>
+                        <option value="quincenal">Quincenal</option>
+                        <option value="mensual">Mensual</option>
+                    </select>
+                </div>
+                <button onclick="crearPrestamo()" class="btn-primary w-full py-3 rounded-lg font-bold text-white uppercase tracking-wider">
+                    Generar Préstamo
+                </button>
+            </div>
+        </div>
 
-    function procesarPago() {
-        const montoIngresado = cleanNum(document.getElementById('p-monto').value);
-        if(!montoIngresado) return;
-        let p = db[curIdx];
-        let resto = montoIngresado;
+        <div class="relative mb-4">
+            <input type="text" id="buscador" onkeyup="filtrarClientes()" placeholder="Buscar cliente..." class="input-prz pl-10">
+            <i class="fas fa-search absolute left-3 top-3.5 text-slate-400"></i>
+        </div>
 
-        for(let c of p.plan) {
-            if(resto <= 0) break;
-            if(c.estado === 'Pagada') continue;
-            let deudaCuota = c.total - c.pagado;
-            if(resto >= deudaCuota) {
-                resto -= deudaCuota;
-                c.pagado = c.total;
-                c.estado = 'Pagada';
-            } else {
-                c.pagado += resto;
-                c.estado = 'Parcial';
-                resto = 0;
+        <div id="listaClientes" class="space-y-4">
+            </div>
+    </div>
+
+    <div class="fixed bottom-4 right-4 flex flex-col gap-2">
+        <button onclick="exportarDatos()" class="bg-slate-700 p-3 rounded-full text-white shadow-lg"><i class="fas fa-file-export"></i></button>
+        <button onclick="document.getElementById('importInput').click()" class="bg-slate-700 p-3 rounded-full text-white shadow-lg"><i class="fas fa-file-import"></i></button>
+        <input type="file" id="importInput" class="hidden" onchange="importarDatos(event)">
+    </div>
+
+    <script>
+        let clientes = JSON.parse(localStorage.getItem('prz_data')) || [];
+
+        function guardar() {
+            localStorage.setItem('prz_data', JSON.stringify(clientes));
+            renderizar();
+        }
+
+        function crearPrestamo() {
+            const nombre = document.getElementById('nombreCliente').value;
+            const monto = parseFloat(document.getElementById('montoPrestamo').value);
+            const interes = parseFloat(document.getElementById('tasaInteres').value);
+            const cuotas = parseInt(document.getElementById('cuotas').value);
+            const frecuencia = document.getElementById('frecuencia').value;
+
+            if(!nombre || !monto) return alert("Completa los datos básicos");
+
+            const totalCobrar = monto + (monto * (interes / 100));
+            const valorCuota = totalCobrar / cuotas;
+
+            const nuevoCliente = {
+                id: Date.now(),
+                nombre,
+                montoInicial: monto,
+                totalCobrar,
+                saldoRestante: totalCobrar,
+                cuotasTotales: cuotas,
+                cuotasPagas: 0,
+                valorCuota,
+                frecuencia,
+                fechaInicio: new Date().toLocaleDateString(),
+                pagos: []
+            };
+
+            clientes.push(nuevoCliente);
+            guardar();
+            limpiarFormulario();
+        }
+
+        function registrarPago(idCliente) {
+            const index = clientes.findIndex(c => c.id === idCliente);
+            if(clientes[index].saldoRestante <= 0) return alert("Préstamo ya finalizado");
+
+            clientes[index].cuotasPagas += 1;
+            clientes[index].saldoRestante -= clientes[index].valorCuota;
+            
+            // Registro del pago para el historial
+            clientes[index].pagos.push({
+                fecha: new Date().toLocaleString(),
+                monto: clientes[index].valorCuota
+            });
+
+            guardar();
+            enviarWhatsApp(clientes[index]);
+        }
+
+        function enviarWhatsApp(cliente) {
+            const mensaje = `*PRZ PRESTAMOS*%0A` +
+                            `Hola ${cliente.nombre}, se registró tu pago.%0A` +
+                            `--------------------------%0A` +
+                            `Cuota: ${cliente.cuotasPagas}/${cliente.cuotasTotales}%0A` +
+                            `Monto pagado: $${cliente.valorCuota.toFixed(2)}%0A` +
+                            `Saldo Restante: *$${cliente.saldoRestante.toFixed(2)}*%0A` +
+                            `--------------------------%0A` +
+                            `Gracias por tu puntualidad.`;
+            window.open(`https://wa.me/?text=${mensaje}`, '_blank');
+        }
+
+        function renderizar() {
+            const contenedor = document.getElementById('listaClientes');
+            contenedor.innerHTML = '';
+            let totalCap = 0;
+            let totalDeu = 0;
+
+            clientes.forEach(c => {
+                totalCap += c.montoInicial;
+                totalDeu += c.saldoRestante;
+
+                const card = document.createElement('div');
+                card.className = 'card p-4 border-l-4 ' + (c.saldoRestante <= 0 ? 'border-emerald-500' : 'border-blue-500');
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="font-bold text-lg">${c.nombre}</h3>
+                            <p class="text-xs text-slate-400">${c.fechaInicio} | ${c.frecuencia}</p>
+                        </div>
+                        <button onclick="eliminarCliente(${c.id})" class="text-red-400 text-xs"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-sm mb-4">
+                        <p>Cuotas: <span class="text-white">${c.cuotasPagas}/${c.cuotasTotales}</span></p>
+                        <p class="text-right">Saldo: <span class="text-blue-300">$${c.saldoRestante.toFixed(2)}</span></p>
+                    </div>
+                    <div class="w-full bg-slate-700 rounded-full h-1.5 mb-4">
+                        <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${(c.cuotasPagas/c.cuotasTotales)*100}%"></div>
+                    </div>
+                    <button onclick="registrarPago(${c.id})" class="w-full bg-slate-600 hover:bg-slate-500 py-2 rounded font-semibold text-sm transition">
+                        Registrar Pago y Enviar Recibo
+                    </button>
+                `;
+                contenedor.appendChild(card);
+            });
+
+            document.getElementById('totalCapital').innerText = `$${totalCap.toLocaleString()}`;
+            document.getElementById('totalDeuda').innerText = `$${totalDeu.toLocaleString()}`;
+        }
+
+        function eliminarCliente(id) {
+            if(confirm("¿Eliminar este registro?")) {
+                clientes = clientes.filter(c => c.id !== id);
+                guardar();
             }
         }
-        p.saldo -= montoIngresado;
-        save();
-        const msg = encodeURIComponent(`*PRZ PRESTAMOS*\n\nRecibo de Pago\nCliente: ${p.nombre}\nAbonó: $${montoIngresado.toLocaleString('es-AR')}\nSaldo Restante: $${Math.round(p.saldo).toLocaleString('es-AR')}`);
-        window.open(`https://wa.me/?text=${msg}`);
-        cerrarModal('modal-pago');
-        verDetalle(curIdx);
-    }
 
-    function eliminarPrestamo() { if(confirm("¿Borrar préstamo?")) { db.splice(curIdx, 1); save(); irHome(); } }
-    function irHome() { document.getElementById('view-detalle').style.display = 'none'; document.getElementById('view-cartera').style.display = 'block'; renderCartera(); }
-    function abrirNuevo() { document.getElementById('modal-nuevo').style.display = 'block'; }
-    function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
-    renderCartera();
-</script>
+        function filtrarClientes() {
+            const busqueda = document.getElementById('buscador').value.toLowerCase();
+            const cards = document.getElementById('listaClientes').children;
+            for(let card of cards) {
+                const nombre = card.querySelector('h3').innerText.toLowerCase();
+                card.style.display = nombre.includes(busqueda) ? 'block' : 'none';
+            }
+        }
+
+        function exportarDatos() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(clientes));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "prz_backup.json");
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importarDatos(event) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                clientes = JSON.parse(e.target.result);
+                guardar();
+            };
+            reader.readAsText(event.target.files[0]);
+        }
+
+        function limpiarFormulario() {
+            document.getElementById('nombreCliente').value = '';
+            document.getElementById('montoPrestamo').value = '';
+            document.getElementById('tasaInteres').value = '';
+            document.getElementById('cuotas').value = '';
+        }
+
+        // Carga inicial
+        renderizar();
+    </script>
 </body>
 </html>
