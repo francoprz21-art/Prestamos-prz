@@ -3,56 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRZ PRESTAMOS - Sistema Profesional</title>
+    <title>PRZ PRESTAMOS - Elite v6.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #0f172a; color: #f1f5f9; font-family: 'Inter', sans-serif; }
-        .card-cliente { background: #1e293b; border-radius: 12px; border: 1px solid #334155; }
+        body { background-color: #060a0f; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .card-prz { background: #111827; border: 1px solid #1f2937; border-radius: 12px; }
+        .input-prz { 
+            background: #1f2937; border: 1px solid #374151; color: white; 
+            border-radius: 8px; padding: 10px; width: 100%;
+        }
+        .btn-emerald { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: bold; border-radius: 8px; }
+        
+        /* ESTILOS DE CUOTAS (IGUAL AL VIDEO) */
         .cuota-card { 
             background: #ffffff; color: #1e293b; border-radius: 8px; 
-            margin-bottom: 8px; border-left: 5px solid #cbd5e1; 
+            margin-bottom: 8px; border-left: 6px solid #cbd5e1; 
+            transition: all 0.3s;
         }
-        .cuota-pagada { border-left-color: #10b981 !important; }
-        .cuota-pendiente { border-left-color: #f59e0b !important; }
-        .cuota-vencida { border-left-color: #ef4444 !important; }
+        .cuota-pagada { border-left-color: #10b981 !important; background: #f0fdf4; }
+        .cuota-pendiente { border-left-color: #f59e0b !important; background: #fffbeb; }
+        .cuota-vencida { border-left-color: #ef4444 !important; background: #fef2f2; }
         
-        .input-prz { background: #1e293b; border: 1px solid #475569; color: white; border-radius: 8px; padding: 10px; width: 100%; }
-        .btn-emerald { background: #10b981; color: white; font-weight: bold; border-radius: 8px; }
         .text-emerald { color: #10b981; }
     </style>
 </head>
-<body class="p-4 pb-20">
+<body class="p-4 pb-24">
 
     <div class="max-w-md mx-auto">
-        <header class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-black tracking-tighter">PRZ <span class="text-emerald">PRESTAMOS</span></h1>
-            <button onclick="exportarDatos()" class="text-slate-400"><i class="fas fa-file-export"></i></button>
+        <header class="text-center mb-6">
+            <h1 class="text-3xl font-black tracking-widest text-white italic">PRZ <span class="text-emerald">PRESTAMOS</span></h1>
         </header>
+        
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="card-prz p-4 border-t-4 border-t-blue-500 text-center">
+                <p class="text-[9px] text-slate-400 uppercase font-bold">Capital Invertido</p>
+                <p id="totalCapital" class="text-lg font-bold text-white">$0</p>
+            </div>
+            <div class="card-prz p-4 border-t-4 border-t-emerald-500 text-center">
+                <p class="text-[9px] text-slate-400 uppercase font-bold">Cartera con Ganancia</p>
+                <p id="totalDeuda" class="text-lg font-bold text-emerald">$0</p>
+            </div>
+        </div>
 
-        <div class="card-cliente p-4 mb-6">
-            <input type="text" id="nombreCliente" placeholder="Nombre del Cliente" class="input-prz mb-2 uppercase text-sm">
-            <div class="grid grid-cols-2 gap-2 mb-2">
-                <input type="text" id="montoInput" oninput="formatearMoneda(this)" placeholder="Monto" class="input-prz text-emerald font-bold">
-                <input type="number" id="tasaInteres" placeholder="Interés %" class="input-prz">
+        <div class="card-prz p-5 mb-6 border-emerald-900/30">
+            <h2 class="text-[10px] font-bold text-slate-500 uppercase mb-3 text-center">Nueva Operación</h2>
+            <div class="space-y-3">
+                <input type="text" id="nombreCliente" placeholder="NOMBRE DEL CLIENTE" class="input-prz uppercase font-bold">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="montoInput" oninput="formatearMoneda(this)" placeholder="Monto Préstamo" class="input-prz text-emerald font-bold">
+                    <input type="number" id="tasaInteres" placeholder="Interés %" class="input-prz">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="cuotas" placeholder="Cantidad Cuotas" class="input-prz">
+                    <select id="frecuencia" class="input-prz">
+                        <option value="1">Diario</option>
+                        <option value="7">Semanal</option>
+                        <option value="15">Quincenal</option>
+                        <option value="30">Mensual</option>
+                    </select>
+                </div>
+                <button onclick="crearPrestamo()" class="btn-emerald w-full py-3 shadow-lg">ACTIVAR CRÉDITO</button>
             </div>
-            <div class="grid grid-cols-2 gap-2 mb-3">
-                <input type="number" id="cuotas" placeholder="Cuotas" class="input-prz">
-                <select id="frecuencia" class="input-prz text-xs">
-                    <option value="1">Diario</option>
-                    <option value="7">Semanal</option>
-                    <option value="15">Quincenal</option>
-                    <option value="30">Mensual</option>
-                </select>
-            </div>
-            <button onclick="crearPrestamo()" class="btn-emerald w-full py-2 text-sm uppercase tracking-widest">Crear Crédito</button>
         </div>
 
         <div id="listaClientes" class="space-y-4"></div>
     </div>
 
+    <div class="fixed bottom-5 right-5 flex flex-col gap-3">
+        <button onclick="exportarDatos()" class="bg-slate-800 p-4 rounded-full text-emerald shadow-xl border border-emerald-900/50"><i class="fas fa-download"></i></button>
+        <button onclick="document.getElementById('importInput').click()" class="bg-slate-800 p-4 rounded-full text-slate-500 border border-slate-700"><i class="fas fa-upload"></i></button>
+        <input type="file" id="importInput" class="hidden" onchange="importarDatos(event)">
+    </div>
+
     <script>
-        let clientes = JSON.parse(localStorage.getItem('prz_final_v4')) || [];
+        let clientes = JSON.parse(localStorage.getItem('prz_v6_final')) || [];
 
         function formatearMoneda(input) {
             let valor = input.value.replace(/\D/g, "");
@@ -65,7 +90,7 @@
         }
 
         function guardar() {
-            localStorage.setItem('prz_final_v4', JSON.stringify(clientes));
+            localStorage.setItem('prz_v6_final', JSON.stringify(clientes));
             renderizar();
         }
 
@@ -74,39 +99,33 @@
             const monto = limpiarPuntos(document.getElementById('montoInput').value);
             const interesPorc = parseFloat(document.getElementById('tasaInteres').value) || 0;
             const numCuotas = parseInt(document.getElementById('cuotas').value) || 1;
-            const dias = parseInt(document.getElementById('frecuencia').value);
+            const diasFrecuencia = parseInt(document.getElementById('frecuencia').value);
 
-            if(!nombre || monto <= 0) return alert("Faltan datos");
+            if(!nombre || monto <= 0) return alert("Carga nombre y monto");
 
-            const totalInteres = monto * (interesPorc / 100);
-            const totalCobrar = monto + totalInteres;
-            
-            const capPorCuota = monto / numCuotas;
-            const intPorCuota = totalInteres / numCuotas;
-            const valorCuotaTotal = totalCobrar / numCuotas;
+            const totalCobrar = monto + (monto * (interesPorc / 100));
+            const valorCuota = totalCobrar / numCuotas;
+            const hoy = new Date();
 
             let cronograma = [];
-            let hoy = new Date();
-
             for(let i = 1; i <= numCuotas; i++) {
                 let fVenc = new Date();
-                fVenc.setDate(hoy.getDate() + (i * dias));
+                fVenc.setDate(hoy.getDate() + (i * diasFrecuencia));
                 cronograma.push({
-                    n: i,
-                    vence: fVenc.toISOString(),
-                    cap: capPorCuota,
-                    int: intPorCuota,
-                    total: valorCuotaTotal,
-                    pagado: 0
+                    numero: i,
+                    fechaVenc: fVenc.toISOString(),
+                    montoTotal: valorCuota,
+                    montoPagado: 0
                 });
             }
 
             clientes.push({
                 id: Date.now(),
                 nombre: nombre.toUpperCase(),
-                montoCap: monto,
-                montoTotal: totalCobrar,
-                cuotas: cronograma
+                montoInicial: monto,
+                totalCobrar: totalCobrar,
+                cuotas: cronograma,
+                fechaCreacion: hoy.toISOString()
             });
 
             guardar();
@@ -114,98 +133,121 @@
             document.getElementById('montoInput').value = '';
         }
 
-        function registrarAbono(cId) {
-            const monto = parseFloat(prompt("Monto a abonar:"));
-            if(isNaN(monto) || monto <= 0) return;
+        function registrarPago(clienteId) {
+            const montoStr = prompt("Ingrese el monto que abona el cliente:");
+            const montoAbonado = parseFloat(montoStr);
+            
+            if(isNaN(montoAbonado) || montoAbonado <= 0) return;
 
-            let remanente = monto;
-            const cIndex = clientes.findIndex(x => x.id === cId);
-            let c = clientes[cIndex];
+            let remanente = montoAbonado;
+            const cIdx = clientes.findIndex(c => c.id === clienteId);
+            let cliente = clientes[cIdx];
 
-            for(let cuota of c.cuotas) {
+            for(let cuota of cliente.cuotas) {
                 if(remanente <= 0) break;
-                let falta = cuota.total - cuota.pagado;
-                if(falta > 0) {
-                    if(remanente >= falta) {
-                        cuota.pagado = cuota.total;
-                        remanente -= falta;
+                let faltaParaCuota = cuota.montoTotal - cuota.montoPagado;
+                
+                if(faltaParaCuota > 0) {
+                    if(remanente >= faltaParaCuota) {
+                        cuota.montoPagado = cuota.montoTotal;
+                        remanente -= faltaParaCuota;
                     } else {
-                        cuota.pagado += remanente;
+                        cuota.montoPagado += remanente;
                         remanente = 0;
                     }
                 }
             }
-            guardar();
             
-            const msg = `*PRZ PRESTAMOS - RECIBO*%0A*Cliente:* ${c.nombre}%0A*Abonó:* $${monto.toLocaleString('es-AR')}%0A------------------%0A_Gracias por su pago._`;
+            guardar();
+
+            // ENVÍO DIRECTO A WHATSAPP (SOLICITADO)
+            const msg = `*COMPROBANTE DE PAGO*%0A*EMPRESA:* PRZ PRESTAMOS%0A*CLIENTE:* ${cliente.nombre}%0A*ABONÓ:* $${montoAbonado.toLocaleString('es-AR')}%0A*FECHA:* ${new Date().toLocaleDateString('es-AR')}%0A--------------------------%0A_Pago registrado correctamente._`;
             window.open(`https://wa.me/?text=${msg}`, '_blank');
         }
 
         function renderizar() {
             const lista = document.getElementById('listaClientes');
             lista.innerHTML = '';
+            let capG = 0; let deuG = 0;
             const hoy = new Date();
 
             clientes.forEach(c => {
-                let saldoC = c.cuotas.reduce((acc, curr) => acc + (curr.total - curr.pagado), 0);
+                capG += c.montoInicial;
+                let saldoPendiente = 0;
                 
                 const cuotasHTML = c.cuotas.map(ct => {
-                    const fV = new Date(ct.vence);
-                    const vencida = hoy > fV && ct.pagado < ct.total;
-                    let estadoClase = "";
-                    if(ct.pagado >= ct.total) estadoClase = "cuota-pagada";
-                    else if(vencida) estadoClase = "cuota-vencida";
-                    else if(ct.pagado > 0) estadoClase = "cuota-pendiente";
+                    const fV = new Date(ct.fechaVenc);
+                    const vencida = hoy > fV && ct.montoPagado < (ct.montoTotal - 0.1);
+                    saldoPendiente += (ct.montoTotal - ct.montoPagado);
+                    
+                    let claseEstado = "";
+                    if(ct.montoPagado >= (ct.montoTotal - 0.1)) claseEstado = "cuota-pagada";
+                    else if(vencida) claseEstado = "cuota-vencida";
+                    else if(ct.montoPagado > 0) claseEstado = "cuota-pendiente";
 
                     return `
-                        <div class="cuota-card p-3 shadow-sm ${estadoClase}">
-                            <div class="flex justify-between items-start">
-                                <div class="text-[10px] space-y-1">
-                                    <div class="flex gap-4">
-                                        <span>Saldo capital: <b class="text-slate-600">$${(ct.cap - (ct.pagado > ct.cap ? ct.cap : ct.pagado)).toFixed(2)}</b></span>
-                                        <span>Saldo interés: <b class="text-slate-600">$${(ct.int - (ct.pagado > ct.cap ? ct.pagado - ct.cap : 0)).toFixed(2)}</b></span>
-                                    </div>
-                                    <div class="font-bold text-slate-800">Saldo total: $${(ct.total - ct.pagado).toLocaleString('es-AR')}</div>
-                                    <div class="text-slate-400">Vence: ${fV.toLocaleDateString('es-AR')}</div>
+                        <div class="cuota-card p-3 shadow-sm ${claseEstado}">
+                            <div class="flex justify-between items-center">
+                                <div class="text-[10px]">
+                                    <div class="font-black text-slate-800 uppercase mb-1">Cuota ${ct.numero}</div>
+                                    <div class="text-slate-400 font-bold"><i class="far fa-calendar-alt"></i> ${fV.toLocaleDateString('es-AR')}</div>
+                                    <div class="mt-1 text-slate-500">Valor Cuota: $${ct.montoTotal.toLocaleString('es-AR')}</div>
                                 </div>
                                 <div class="text-right">
-                                    <span class="bg-slate-100 text-slate-500 text-[9px] px-2 py-1 rounded-full font-bold">${ct.n}</span>
-                                    <p class="text-xs font-black mt-2">Abonado</p>
-                                    <p class="text-sm font-bold text-emerald">$${ct.pagado.toLocaleString('es-AR')}</p>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase">Abonado</p>
+                                    <p class="text-sm font-black text-emerald">$${ct.montoPagado.toLocaleString('es-AR')}</p>
+                                    ${ct.montoPagado < (ct.montoTotal - 0.1) ? `<p class="text-[9px] text-amber-600 font-bold italic">Falta: $${(ct.montoTotal - ct.montoPagado).toLocaleString('es-AR')}</p>` : ''}
                                 </div>
                             </div>
                         </div>
                     `;
                 }).join('');
 
-                const div = document.createElement('div');
-                div.className = 'card-cliente';
-                div.innerHTML = `
+                deuG += saldoPendiente;
+
+                const card = document.createElement('div');
+                card.className = 'card-prz mb-4';
+                card.innerHTML = `
                     <div class="p-4 flex justify-between items-center cursor-pointer" onclick="document.getElementById('plan-${c.id}').classList.toggle('hidden')">
                         <div>
-                            <h3 class="font-bold text-white uppercase text-sm">${c.nombre}</h3>
-                            <p class="text-xs text-emerald font-bold">$${saldoC.toLocaleString('es-AR')} pendiente</p>
+                            <h3 class="font-black text-white text-sm uppercase tracking-tight">${c.nombre}</h3>
+                            <p class="text-[10px] text-emerald font-bold">SALDO: $${saldoPendiente.toLocaleString('es-AR')}</p>
                         </div>
-                        <i class="fas fa-chevron-down text-slate-500 text-xs"></i>
+                        <i class="fas fa-chevron-down text-slate-600 text-xs"></i>
                     </div>
-                    <div id="plan-${c.id}" class="hidden p-3 bg-slate-800/50 border-t border-slate-700">
-                        <div class="flex justify-between mb-4">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase"><i class="fas fa-list-ol mr-1"></i> Plan de pago</span>
-                            <button onclick="registrarAbono(${c.id})" class="text-emerald text-[10px] font-black uppercase"><i class="fas fa-plus-circle"></i> Abonar</button>
+                    <div id="plan-${c.id}" class="hidden p-3 bg-slate-900/50 border-t border-slate-700">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-[9px] font-bold text-slate-500 uppercase">Detalle de Cuotas</span>
+                            <button onclick="registrarPago(${c.id})" class="bg-emerald-500 text-white text-[10px] px-4 py-1.5 rounded-full font-black uppercase shadow-lg">
+                                <i class="fas fa-dollar-sign"></i> REGISTRAR PAGO
+                            </button>
                         </div>
-                        ${cuotasHTML}
-                        <button onclick="eliminar(${c.id})" class="w-full mt-4 text-[9px] text-red-500 font-bold uppercase opacity-30">Eliminar Cliente</button>
+                        <div class="max-h-72 overflow-y-auto pr-1">
+                            ${cuotasHTML}
+                        </div>
+                        <div class="mt-4 flex justify-between items-center">
+                            <button onclick="eliminar(${c.id})" class="text-[9px] text-red-900 font-bold uppercase">Borrar Cliente</button>
+                            <span class="text-[8px] text-slate-700">INICIO: ${new Date(c.fechaCreacion).toLocaleDateString()}</span>
+                        </div>
                     </div>
                 `;
-                lista.appendChild(div);
+                lista.appendChild(card);
             });
+
+            document.getElementById('totalCapital').innerText = `$${capG.toLocaleString('es-AR')}`;
+            document.getElementById('totalDeuda').innerText = `$${deuG.toLocaleString('es-AR')}`;
         }
 
-        function eliminar(id) { if(confirm("¿Eliminar?")) { clientes = clientes.filter(x => x.id !== id); guardar(); } }
+        function eliminar(id) { if(confirm("¿Eliminar cliente?")) { clientes = clientes.filter(c => c.id !== id); guardar(); } }
         function exportarDatos() {
             const blob = new Blob([JSON.stringify(clientes)], {type: "application/json"});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob); a.download = "PRZ_BACKUP.json"; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); 
+            a.download = `PRZ_BACKUP.json`; a.click();
+        }
+        function importarDatos(e) {
+            const reader = new FileReader();
+            reader.onload = (ev) => { clientes = JSON.parse(ev.target.result); guardar(); };
+            reader.readAsText(e.target.files[0]);
         }
         renderizar();
     </script>
