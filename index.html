@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRZ PRESTAMOS - Elite</title>
+    <title>PRZ PRESTAMOS - Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { background-color: #060a0f; color: #e2e8f0; font-family: 'Inter', sans-serif; }
-        .card-prz { background: #111827; border: 1px solid #1f2937; border-radius: 12px; }
+        .card-prz { background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; }
         .input-prz { 
             background: #1f2937; border: 1px solid #374151; color: white; 
-            border-radius: 8px; padding: 12px; width: 100%;
+            border-radius: 8px; padding: 10px; width: 100%;
         }
         .input-prz:focus { border-color: #10b981; outline: none; }
         .btn-emerald { 
             background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
             color: white; font-weight: bold; border-radius: 8px; transition: all 0.3s;
         }
-        .btn-emerald:hover { opacity: 0.9; transform: scale(0.98); }
         .text-emerald { color: #10b981; }
+        .vencido { color: #ef4444; }
+        .al-dia { color: #10b981; }
     </style>
 </head>
 <body class="p-4 pb-24">
@@ -27,54 +28,71 @@
     <div class="max-w-md mx-auto">
         <header class="text-center mb-6">
             <h1 class="text-3xl font-black tracking-widest text-white">PRZ <span class="text-emerald">PRESTAMOS</span></h1>
-            <div class="h-1 w-20 bg-emerald-500 mx-auto mt-1 rounded-full"></div>
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest" id="fechaActual"></p>
         </header>
         
         <div class="grid grid-cols-2 gap-3 mb-6">
-            <div class="card-prz p-4 border-t-4 border-t-emerald-500">
-                <p class="text-[10px] text-slate-400 uppercase font-bold">Capital Activo</p>
-                <p id="totalCapital" class="text-xl font-bold text-white">$0</p>
+            <div class="card-prz p-4 border-t-4 border-t-emerald-500 text-center">
+                <p class="text-[9px] text-slate-400 uppercase font-bold">Capital Activo</p>
+                <p id="totalCapital" class="text-lg font-bold text-white">$0</p>
             </div>
-            <div class="card-prz p-4 border-t-4 border-t-emerald-500">
-                <p class="text-[10px] text-slate-400 uppercase font-bold">Total a Cobrar</p>
-                <p id="totalDeuda" class="text-xl font-bold text-emerald">$0</p>
+            <div class="card-prz p-4 border-t-4 border-t-emerald-500 text-center">
+                <p class="text-[9px] text-slate-400 uppercase font-bold">Total a Cobrar</p>
+                <p id="totalDeuda" class="text-lg font-bold text-emerald">$0</p>
             </div>
         </div>
 
-        <div class="card-prz p-5 mb-6">
-            <div class="space-y-4">
+        <div class="card-prz p-5 mb-6 border-emerald-900/30">
+            <div class="space-y-3">
                 <input type="text" id="nombreCliente" placeholder="Nombre del Cliente" class="input-prz uppercase">
-                <div class="relative">
-                    <input type="text" id="montoInput" oninput="formatearMoneda(this)" placeholder="Monto del préstamo" class="input-prz text-emerald font-bold text-lg">
-                    <span class="absolute right-3 top-3 text-slate-500">$</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="relative">
+                        <input type="text" id="montoInput" oninput="formatearMoneda(this)" placeholder="Monto" class="input-prz text-emerald font-bold">
+                    </div>
+                    <input type="number" id="tasaInteres" placeholder="Interés %" class="input-prz">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="number" id="tasaInteres" placeholder="Interés %" class="input-prz">
-                    <input type="number" id="cuotas" placeholder="Cuotas" class="input-prz">
+                    <input type="number" id="cuotas" placeholder="N° Cuotas" class="input-prz">
+                    <select id="frecuencia" class="input-prz">
+                        <option value="1">Diario</option>
+                        <option value="7">Semanal</option>
+                        <option value="15">Quincenal</option>
+                        <option value="30">Mensual</option>
+                    </select>
                 </div>
-                <select id="frecuencia" class="input-prz">
-                    <option value="Diario">Diario</option>
-                    <option value="Semanal">Semanal</option>
-                    <option value="Quincenal">Quincenal</option>
-                    <option value="Mensual">Mensual</option>
-                </select>
-                <button onclick="crearPrestamo()" class="btn-emerald w-full py-4 shadow-lg shadow-emerald-900/20">
-                    GENERAR NUEVO CRÉDITO
+                <button onclick="crearPrestamo()" class="btn-emerald w-full py-3 shadow-lg">
+                    CREAR NUEVO PRÉSTAMO
                 </button>
             </div>
         </div>
 
-        <div id="listaClientes" class="space-y-4"></div>
+        <div id="listaClientes" class="space-y-6"></div>
+    </div>
+
+    <div id="modalEdit" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+        <div class="card-prz p-6 w-full max-w-sm">
+            <h2 class="text-white font-bold mb-4">Editar Datos</h2>
+            <input type="hidden" id="editId">
+            <label class="text-[10px] text-slate-400 uppercase">Nombre</label>
+            <input type="text" id="editNombre" class="input-prz mb-3 uppercase">
+            <label class="text-[10px] text-slate-400 uppercase">Monto Capital ($)</label>
+            <input type="text" id="editMonto" oninput="formatearMoneda(this)" class="input-prz mb-4">
+            <div class="flex gap-2">
+                <button onclick="cerrarModal()" class="flex-1 bg-slate-700 py-2 rounded-lg font-bold">Cancelar</button>
+                <button onclick="guardarEdicion()" class="flex-1 btn-emerald py-2 rounded-lg">Guardar</button>
+            </div>
+        </div>
     </div>
 
     <div class="fixed bottom-5 right-5 flex flex-col gap-3">
-        <button onclick="exportarDatos()" class="bg-slate-800 p-4 rounded-full text-emerald shadow-xl border border-emerald-900/50"><i class="fas fa-download"></i></button>
-        <button onclick="document.getElementById('importInput').click()" class="bg-slate-800 p-4 rounded-full text-slate-400 shadow-xl border border-slate-700"><i class="fas fa-upload"></i></button>
+        <button onclick="exportarDatos()" class="bg-slate-800 p-4 rounded-full text-emerald border border-emerald-900/50"><i class="fas fa-download"></i></button>
+        <button onclick="document.getElementById('importInput').click()" class="bg-slate-800 p-4 rounded-full text-slate-400 border border-slate-700"><i class="fas fa-upload"></i></button>
         <input type="file" id="importInput" class="hidden" onchange="importarDatos(event)">
     </div>
 
     <script>
-        let clientes = JSON.parse(localStorage.getItem('prz_final_data')) || [];
+        let clientes = JSON.parse(localStorage.getItem('prz_pro_data')) || [];
+        document.getElementById('fechaActual').innerText = new Date().toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
         function formatearMoneda(input) {
             let valor = input.value.replace(/\D/g, "");
@@ -83,11 +101,11 @@
         }
 
         function limpiarPuntos(str) {
-            return parseFloat(str.replace(/\./g, '').replace(/,/g, '')) || 0;
+            return parseFloat(str.toString().replace(/\./g, '').replace(/,/g, '')) || 0;
         }
 
         function guardar() {
-            localStorage.setItem('prz_final_data', JSON.stringify(clientes));
+            localStorage.setItem('prz_pro_data', JSON.stringify(clientes));
             renderizar();
         }
 
@@ -95,13 +113,14 @@
             const nombre = document.getElementById('nombreCliente').value;
             const monto = limpiarPuntos(document.getElementById('montoInput').value);
             const interes = parseFloat(document.getElementById('tasaInteres').value) || 0;
-            const cuotas = parseInt(document.getElementById('cuotas').value) || 1;
-            const frecuencia = document.getElementById('frecuencia').value;
+            const numCuotas = parseInt(document.getElementById('cuotas').value) || 1;
+            const diasFrecuencia = parseInt(document.getElementById('frecuencia').value);
 
             if(!nombre || monto <= 0) return alert("Carga nombre y monto");
 
             const total = monto + (monto * (interes / 100));
-            const valorCuota = total / cuotas;
+            const valorCuota = total / numCuotas;
+            const hoy = new Date();
 
             clientes.push({
                 id: Date.now(),
@@ -109,11 +128,11 @@
                 montoInicial: monto,
                 totalCobrar: total,
                 saldoRestante: total,
-                cuotasTotales: cuotas,
+                cuotasTotales: numCuotas,
                 cuotasPagas: 0,
                 valorCuota,
-                frecuencia,
-                fecha: new Date().toLocaleDateString('es-AR')
+                frecuencia: diasFrecuencia,
+                fechaCreacion: hoy.toISOString()
             });
 
             guardar();
@@ -121,56 +140,99 @@
             document.getElementById('montoInput').value = '';
         }
 
+        function calcularVencimiento(fechaInicio, cuotaN, dias) {
+            let fecha = new Date(fechaInicio);
+            fecha.setDate(fecha.getDate() + (cuotaN * dias));
+            return fecha;
+        }
+
+        function abrirModal(id) {
+            const c = clientes.find(x => x.id === id);
+            document.getElementById('editId').value = c.id;
+            document.getElementById('editNombre').value = c.nombre;
+            document.getElementById('editMonto').value = new Intl.NumberFormat('es-AR').format(c.montoInicial);
+            document.getElementById('modalEdit').classList.remove('hidden');
+        }
+
+        function cerrarModal() { document.getElementById('modalEdit').classList.add('hidden'); }
+
+        function guardarEdicion() {
+            const id = parseInt(document.getElementById('editId').value);
+            const index = clientes.findIndex(c => c.id === id);
+            clientes[index].nombre = document.getElementById('editNombre').value.toUpperCase();
+            
+            // Si cambia el monto, recalculamos el préstamo manteniendo el interés original
+            const nuevoMonto = limpiarPuntos(document.getElementById('editMonto').value);
+            if(nuevoMonto !== clientes[index].montoInicial) {
+                const ratioInteres = clientes[index].totalCobrar / clientes[index].montoInicial;
+                clientes[index].montoInicial = nuevoMonto;
+                clientes[index].totalCobrar = nuevoMonto * ratioInteres;
+                clientes[index].valorCuota = clientes[index].totalCobrar / clientes[index].cuotasTotales;
+                clientes[index].saldoRestante = clientes[index].totalCobrar - (clientes[index].cuotasPagas * clientes[index].valorCuota);
+            }
+
+            guardar();
+            cerrarModal();
+        }
+
         function registrarPago(id) {
             const i = clientes.findIndex(c => c.id === id);
-            if(clientes[i].saldoRestante <= 0) return;
+            if(clientes[i].cuotasPagas >= clientes[i].cuotasTotales) return;
 
             clientes[i].cuotasPagas += 1;
             clientes[i].saldoRestante -= clientes[i].valorCuota;
             if(clientes[i].saldoRestante < 0) clientes[i].saldoRestante = 0;
 
             guardar();
-            enviarWA(clientes[i]);
-        }
-
-        function enviarWA(c) {
-            const msg = `*PRZ PRESTAMOS*%0A` +
-                        `*Cliente:* ${c.nombre}%0A` +
-                        `*Pago:* Cuota ${c.cuotasPagas}/${c.cuotasTotales}%0A` +
-                        `*Monto:* $${c.valorCuota.toLocaleString('es-AR')}%0A` +
-                        `--------------------------%0A` +
-                        `*SALDO RESTANTE:* *$${c.saldoRestante.toLocaleString('es-AR')}*%0A` +
-                        `--------------------------`;
+            
+            const msg = `*COMPROBANTE DE PAGO*%0A*EMPRESA:* PRZ PRESTAMOS%0A*CLIENTE:* ${clientes[i].nombre}%0A*CUOTA:* ${clientes[i].cuotasPagas} de ${clientes[i].cuotasTotales}%0A*MONTO ABONADO:* $${clientes[i].valorCuota.toLocaleString('es-AR')}%0A--------------------------%0A_Pago registrado correctamente._`;
             window.open(`https://wa.me/?text=${msg}`, '_blank');
         }
+
+        function eliminar(id) { if(confirm("¿Eliminar este préstamo por completo?")) { clientes = clientes.filter(c => c.id !== id); guardar(); } }
 
         function renderizar() {
             const lista = document.getElementById('listaClientes');
             lista.innerHTML = '';
             let cap = 0; let deu = 0;
+            const hoy = new Date();
 
             clientes.forEach(c => {
                 cap += c.montoInicial;
                 deu += c.saldoRestante;
+                
+                const proxCuotaN = c.cuotasPagas < c.cuotasTotales ? c.cuotasPagas + 1 : c.cuotasTotales;
+                const fechaVence = calcularVencimiento(c.fechaCreacion, proxCuotaN, c.frecuencia);
+                const esVencido = hoy > fechaVence && c.cuotasPagas < c.cuotasTotales;
+
                 const card = document.createElement('div');
-                card.className = 'card-prz p-4';
+                card.className = 'card-prz';
                 card.innerHTML = `
-                    <div class="flex justify-between mb-3">
-                        <span class="font-black text-white text-sm">${c.nombre}</span>
-                        <span class="text-emerald text-[10px] font-bold">${c.frecuencia}</span>
-                    </div>
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="p-4 bg-slate-800/50 flex justify-between items-center">
                         <div>
-                            <p class="text-[9px] text-slate-500 uppercase">Saldo</p>
-                            <p class="text-xl font-bold text-white">$${c.saldoRestante.toLocaleString('es-AR')}</p>
+                            <h3 class="font-black text-white text-sm">${c.nombre}</h3>
+                            <p class="text-[9px] text-slate-500 uppercase">Inicio: ${new Date(c.fechaCreacion).toLocaleDateString('es-AR')}</p>
                         </div>
-                        <div class="text-right">
-                            <p class="text-[9px] text-slate-500 uppercase">Cuota</p>
-                            <p class="text-sm font-bold text-slate-300">$${c.valorCuota.toLocaleString('es-AR')}</p>
+                        <div class="flex gap-3">
+                            <button onclick="abrirModal(${c.id})" class="text-slate-400 hover:text-white"><i class="fas fa-edit text-xs"></i></button>
+                            <button onclick="eliminar(${c.id})" class="text-red-900 hover:text-red-500"><i class="fas fa-trash text-xs"></i></button>
                         </div>
                     </div>
-                    <button onclick="registrarPago(${c.id})" class="w-full btn-emerald py-2 text-xs mb-2">COBRAR CUOTA ${c.cuotasPagas}/${c.cuotasTotales}</button>
-                    <button onclick="eliminar(${c.id})" class="w-full text-slate-600 text-[10px] uppercase font-bold">Eliminar Registro</button>
+                    <div class="p-4">
+                        <div class="flex justify-between mb-4">
+                            <div>
+                                <p class="text-[9px] text-slate-500 uppercase">Saldo Actual</p>
+                                <p class="text-lg font-bold text-white">$${c.saldoRestante.toLocaleString('es-AR')}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[9px] text-slate-500 uppercase">Próximo Vencimiento</p>
+                                <p class="text-xs font-bold ${esVencido ? 'vencido' : 'al-dia'}">${fechaVence.toLocaleDateString('es-AR')}</p>
+                            </div>
+                        </div>
+                        <button onclick="registrarPago(${c.id})" class="w-full btn-emerald py-3 text-xs mb-2">
+                            COBRAR CUOTA ${c.cuotasPagas}/${c.cuotasTotales} ($${c.valorCuota.toLocaleString('es-AR')})
+                        </button>
+                    </div>
                 `;
                 lista.appendChild(card);
             });
@@ -178,13 +240,10 @@
             document.getElementById('totalDeuda').innerText = `$${deu.toLocaleString('es-AR')}`;
         }
 
-        function eliminar(id) { if(confirm("¿Borrar?")) { clientes = clientes.filter(c => c.id !== id); guardar(); } }
         function exportarDatos() {
             const blob = new Blob([JSON.stringify(clientes)], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = `PRZ_DATA.json`;
-            a.click();
+            a.href = URL.createObjectURL(blob); a.download = `PRZ_BACKUP.json`; a.click();
         }
         function importarDatos(e) {
             const reader = new FileReader();
