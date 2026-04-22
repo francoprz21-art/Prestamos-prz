@@ -215,5 +215,22 @@
         function cerrarModal() { document.getElementById('modalEdit').classList.add('hidden'); }
         renderizar();
     </script>
+        <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => {
+              console.log('PRZ App: Service Worker registrado con éxito', reg);
+            })
+            .catch(err => {
+              console.log('PRZ App: Error al registrar el Service Worker', err);
+            });
+        });
+      }
+    </script>
+
+  </body>
+</html>
+
 </body>
 </html>
